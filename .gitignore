@@ -1,1 +1,4 @@
 .DS_store
+
+# This is where the compiled files will be stored
+/public

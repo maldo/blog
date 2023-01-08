@@ -4,24 +4,31 @@ on:
   push:
     brancehs: [main]
 
-inputs:
-  HUGO_VERSION:
-    description: 'Description of variable 1'
-    required: true
-  variable2:
-    description: 'Description of variable 2'
-    required: true
-  variable3:
-    description: 'Description of variable 3'
-    required: true
-    ${AWS_ACCESS_KEY_ID}
-${AWS_SECRET_ACCESS_KEY}
-${AWS_REGION}
-
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Check out main
-      - uses: actions/checkout@v3
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+
+      - name: Install Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: '0.109.0'
+          extended: true
+
+      - name: Build
+        run: hugo --minify
+      
+      - name: Deploy
+        run: hugo deploy
