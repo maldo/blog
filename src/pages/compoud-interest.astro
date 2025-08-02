@@ -1,5 +1,5 @@
 ---
-
+import "@styles/compound-interest.css";
 ---
 
 <!doctype html>
@@ -8,109 +8,6 @@
     <meta charset="utf-8" />
     <title>Compound Interest Calculator</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style>
-      /* Minimal styling */
-      body {
-        font-family: system-ui, sans-serif;
-        line-height: 1.5;
-        margin: 0;
-        background: #f8fafc;
-        color: #111;
-      }
-
-      /* Header */
-      .page-header {
-        text-align: center;
-        margin: 2rem 0 0;
-      }
-      .page-title {
-        font-size: 2rem;
-        font-weight: 700;
-        margin: 0;
-      }
-      .page-subtitle {
-        font-size: 1rem;
-        color: #334155;
-        margin: 0.25rem 0 2rem;
-      }
-
-      /* layout for the two‑column section */
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem;
-        display: grid;
-        gap: 2rem;
-        grid-template-columns: 1fr;
-      }
-      @media (min-width: 900px) {
-        .container {
-          grid-template-columns: 1fr 1fr;
-        }
-      }
-
-      .card {
-        background: #fff;
-        border-radius: 1rem;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-        padding: 2rem;
-      }
-      h2 {
-        margin-top: 0;
-        font-size: 1.25rem;
-      }
-      label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 0.25rem;
-      }
-      input,
-      select {
-        width: 100%;
-        padding: 0.5rem 0.75rem;
-        border: 1px solid #d1d5db;
-        border-radius: 0.5rem;
-      }
-
-      /* stats blocks */
-      .stats {
-        display: grid;
-        gap: 1rem;
-      }
-      .stat {
-        background: linear-gradient(135deg, #5f6bff, #8f5dfd);
-        border-radius: 1rem;
-        color: #fff;
-        padding: 1.5rem;
-        text-align: center;
-      }
-      .stat h3 {
-        margin: 0;
-        font-size: 0.875rem;
-        font-weight: 500;
-        letter-spacing: 0.02em;
-      }
-      .stat p {
-        margin: 0.25rem 0 0;
-        font-size: 1.75rem;
-        font-weight: 700;
-      }
-
-      canvas {
-        width: 100%;
-        max-height: 380px;
-      }
-      .info {
-        cursor: help;
-        margin-left: 0.25rem;
-      }
-
-      /* chart card spans full width */
-      .chart-wrapper {
-        max-width: 1200px;
-        margin: 0 auto 4rem;
-      }
-    </style>
     <!-- Chart.js via CDN (UMD) -->
     <script
       defer
@@ -131,7 +28,7 @@
       <!-- Input panel -->
       <form id="calc" class="card">
         <h2>Investment Details</h2>
-        <div>
+        <div class="form-group">
           <label for="principal"
             >Initial Investment ($)
             <span class="info" title="The lump‑sum amount you invest today"
@@ -146,7 +43,7 @@
             min="0"
           />
         </div>
-        <div>
+        <div class="form-group">
           <label for="rate"
             >Annual Interest Rate (%)
             <span class="info" title="Nominal interest rate before compounding"
@@ -155,7 +52,7 @@
           </label>
           <input id="rate" type="number" step="0.01" value="7" min="0" />
         </div>
-        <div>
+        <div class="form-group">
           <label for="years"
             >Time Period (years)
             <span
@@ -165,7 +62,7 @@
           </label>
           <input id="years" type="number" step="1" value="12" min="1" />
         </div>
-        <div>
+        <div class="form-group">
           <label for="frequency"
             >Compounding Frequency
             <span
@@ -181,7 +78,7 @@
             <option value="365">Daily</option>
           </select>
         </div>
-        <div>
+        <div class="form-group">
           <label for="contribution"
             >Monthly Contribution ($)
             <span class="info" title="Optional extra amount you add each month"
@@ -214,11 +111,11 @@
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Full‑width chart below the two‑column grid -->
-    <div class="card chart-wrapper">
-      <canvas id="growthChart" height="300"></canvas>
+      <!-- Full‑width chart below the two‑column grid -->
+      <div class="card lg:col-span-2">
+        <canvas id="growthChart" height="100"></canvas>
+      </div>
     </div>
 
     <script>
@@ -243,7 +140,7 @@
                 ? PMT * ((Math.pow(1 + r / n, periods) - 1) / (r / n))
                 : 0;
             const amount = lumpSumFV + annuityFV;
-            if (year > 0) totalContrib += PMT * n;
+            if (year > 0) totalContrib += PMT * 12;
             data.push({ year, amount });
           }
           return { data, final: data.at(-1).amount, totalContrib };
@@ -295,18 +192,19 @@
             style: "currency",
             currency: "USD",
           });
-          $("totalContrib").textContent = totalContrib.toLocaleString(
+          const principal = parseFloat($("principal").value) || 0;
+          const totalContributions = totalContrib + principal;
+          $("totalContrib").textContent = totalContributions.toLocaleString(
             undefined,
             { style: "currency", currency: "USD" }
           );
-          const interest =
-            final - totalContrib - (parseFloat($("principal").value) || 0);
+          const interest = final - totalContributions;
           $("interestEarned").textContent = interest.toLocaleString(undefined, {
             style: "currency",
             currency: "USD",
           });
           $("growthMultiple").textContent =
-            (final / (parseFloat($("principal").value) || 1)).toFixed(2) + "x";
+            (final / totalContributions).toFixed(2) + "x";
 
           chart.data.labels = data.map(d => d.year);
           chart.data.datasets[0].data = data.map(d => d.amount);

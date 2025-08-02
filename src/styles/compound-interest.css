@@ -1,0 +1,49 @@
+
+@import "tailwindcss";
+@import "./global.css";
+
+@layer components {
+    .page-header {
+        @apply text-center my-8;
+    }
+    .page-title {
+        @apply text-4xl font-bold mb-2;
+    }
+    .page-subtitle {
+        @apply text-lg text-foreground/80;
+    }
+    .container {
+        @apply max-w-7xl mx-auto p-8 grid gap-8 grid-cols-1 lg:grid-cols-2;
+    }
+    .card {
+        @apply bg-background border border-border rounded-2xl p-8 shadow-lg;
+    }
+    .card h2 {
+        @apply text-2xl font-semibold mb-6;
+    }
+    .form-group {
+        @apply mb-6;
+    }
+    label {
+        @apply block font-semibold mb-2;
+    }
+    input,
+    select {
+        @apply w-full p-3 border border-border rounded-lg bg-background text-foreground;
+    }
+    .info {
+        @apply text-accent cursor-help ml-2;
+    }
+    .stats {
+        @apply grid gap-6;
+    }
+    .stat {
+        @apply bg-accent text-background rounded-2xl p-6 text-center;
+    }
+    .stat h3 {
+        @apply text-sm font-medium uppercase tracking-wider;
+    }
+    .stat p {
+        @apply text-3xl font-bold mt-1;
+    }
+}
