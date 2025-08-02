@@ -46,4 +46,10 @@
     .stat p {
         @apply text-3xl font-bold mt-1;
     }
+    #breakdown-table th {
+        @apply border-b-2 border-border;
+    }
+    #breakdown-table tbody tr:nth-child(even) {
+        @apply bg-muted/20;
+    }
 }

@@ -116,6 +116,26 @@ import "@styles/compound-interest.css";
       <div class="card lg:col-span-2">
         <canvas id="growthChart" height="100"></canvas>
       </div>
+
+      <!-- Year-by-year breakdown table -->
+      <div class="card lg:col-span-2">
+        <h2 class="text-2xl font-semibold mb-4">Year-by-Year Breakdown</h2>
+        <div class="overflow-x-auto">
+          <table id="breakdown-table" class="w-full text-left">
+            <thead>
+              <tr>
+                <th class="p-4">Year</th>
+                <th class="p-4">Value</th>
+                <th class="p-4">Interest Earned</th>
+                <th class="p-4">Total Contributions</th>
+              </tr>
+            </thead>
+            <tbody id="breakdown-body">
+              <!-- Rows will be injected by script -->
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <script>
@@ -209,6 +229,32 @@ import "@styles/compound-interest.css";
           chart.data.labels = data.map(d => d.year);
           chart.data.datasets[0].data = data.map(d => d.amount);
           chart.update();
+
+          // --- Populate breakdown table ---
+          const tableBody = $("breakdown-body");
+          tableBody.innerHTML = ""; // Clear previous results
+
+          let lastYearAmount = parseFloat($("principal").value) || 0;
+          let cumulativeContributions = lastYearAmount;
+
+          data.forEach(({ year, amount }) => {
+            if (year === 0) return; // Skip year 0
+
+            const annualContribution = (parseFloat($("contribution").value) || 0) * 12;
+            const interestThisYear = amount - lastYearAmount - annualContribution;
+            cumulativeContributions += annualContribution;
+
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td class="p-4">${year}</td>
+              <td class="p-4">${amount.toLocaleString(undefined, { style: "currency", currency: "USD" })}</td>
+              <td class="p-4">${interestThisYear.toLocaleString(undefined, { style: "currency", currency: "USD" })}</td>
+              <td class="p-4">${cumulativeContributions.toLocaleString(undefined, { style: "currency", currency: "USD" })}</td>
+            `;
+            tableBody.appendChild(row);
+
+            lastYearAmount = amount;
+          });
         }
 
         $("calc").addEventListener("input", recalc);
