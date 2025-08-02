@@ -10,9 +10,15 @@ import "@styles/compound-interest.css";
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- Chart.js via CDN (UMD) -->
     <script
+      is:inline
       defer
       src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
     ></script>
+    <script is:inline>
+      // Define Chart.js type for TypeScript
+      /** @type {import("chart.js")} */
+      var Chart;
+    </script>
   </head>
   <body>
     <!-- Page Header -->
@@ -138,18 +144,30 @@ import "@styles/compound-interest.css";
       </div>
     </div>
 
-    <script>
+    <script is:inline>
       document.addEventListener("DOMContentLoaded", () => {
-        const $ = id => document.getElementById(id);
+        const $ = /** @type {<T extends HTMLElement>(id: string) => T | null} */ (
+          id => document.getElementById(id)
+        );
+
+        /**
+         * @typedef {{
+         *   year: number;
+         *   amount: number;
+         *   interestThisYear: number;
+         *   totalContributions: number;
+         * }} YearData
+         */
 
         function computeData() {
-          const P = parseFloat($("principal").value) || 0;
-          const r = (parseFloat($("rate").value) || 0) / 100;
-          const t = parseInt($("years").value) || 0;
-          const n = parseInt($("frequency").value) || 1;
-          const PMT = parseFloat($("contribution").value) || 0;
+          const P = parseFloat(/** @type {HTMLInputElement} */ ($("principal"))?.value) || 0;
+          const r = (parseFloat(/** @type {HTMLInputElement} */ ($("rate"))?.value) || 0) / 100;
+          const t = parseInt(/** @type {HTMLInputElement} */ ($("years"))?.value) || 0;
+          const n = parseInt(/** @type {HTMLSelectElement} */ ($("frequency"))?.value) || 1;
+          const PMT = parseFloat(/** @type {HTMLInputElement} */ ($("contribution"))?.value) || 0;
           const m = 12; // Monthly contributions
 
+          /** @type {YearData[]} */
           const data = [];
           let lastYearAmount = P;
 
@@ -163,7 +181,6 @@ import "@styles/compound-interest.css";
                 const annuityNumerator = Math.pow(1 + r / n, n * year) - 1;
                 annuityFV = PMT * (annuityNumerator / annuityDenominator);
               } else {
-                // Fallback for very small rates where precision issues might occur
                 annuityFV = PMT * m * year;
               }
             } else if (PMT > 0 && r === 0) {
@@ -190,15 +207,21 @@ import "@styles/compound-interest.css";
           }
 
           const totalContribOnly = PMT * m * t;
+          const finalAmount = data.at(-1)?.amount ?? 0;
+
           return {
             data,
-            final: data.at(-1).amount,
+            final: finalAmount,
             totalContrib: totalContribOnly,
           };
         }
 
-        // initialise Chart.js after script loads
-        const ctx = document.getElementById("growthChart").getContext("2d");
+        const growthChartEl = /** @type {HTMLCanvasElement | null} */ ($("growthChart"));
+        if (!growthChartEl) return;
+
+        const ctx = growthChartEl.getContext("2d");
+        if (!ctx) return;
+
         const chart = new Chart(ctx, {
           type: "line",
           data: {
@@ -231,7 +254,10 @@ import "@styles/compound-interest.css";
               x: { title: { display: true, text: "Year" } },
               y: {
                 title: { display: true, text: "Value (USD)" },
-                ticks: { callback: v => "$" + (v / 1000).toFixed(0) + "k" },
+                ticks: {
+                  callback: (v) =>
+                    "$" + (Number(v) / 1000).toFixed(0) + "k",
+                },
               },
             },
           },
@@ -239,56 +265,77 @@ import "@styles/compound-interest.css";
 
         function recalc() {
           const { data, final, totalContrib } = computeData();
-          $("finalAmount").textContent = final.toLocaleString(undefined, {
-            style: "currency",
-            currency: "USD",
-          });
-          const principal = parseFloat($("principal").value) || 0;
+
+          const finalAmountEl = $("finalAmount");
+          if (finalAmountEl) {
+            finalAmountEl.textContent = final.toLocaleString(undefined, {
+              style: "currency",
+              currency: "USD",
+            });
+          }
+
+          const principal = parseFloat(/** @type {HTMLInputElement} */ ($("principal"))?.value) || 0;
           const totalContributions = totalContrib + principal;
-          $("totalContrib").textContent = totalContributions.toLocaleString(
-            undefined,
-            { style: "currency", currency: "USD" }
-          );
+
+          const totalContribEl = $("totalContrib");
+          if (totalContribEl) {
+            totalContribEl.textContent = totalContributions.toLocaleString(
+              undefined,
+              { style: "currency", currency: "USD" }
+            );
+          }
+
           const interest = final - totalContributions;
-          $("interestEarned").textContent = interest.toLocaleString(undefined, {
-            style: "currency",
-            currency: "USD",
-          });
-          $("growthMultiple").textContent =
-            (final / totalContributions).toFixed(4) + "x";
+          const interestEarnedEl = $("interestEarned");
+          if (interestEarnedEl) {
+            interestEarnedEl.textContent = interest.toLocaleString(undefined, {
+              style: "currency",
+              currency: "USD",
+            });
+          }
+
+          const growthMultipleEl = $("growthMultiple");
+          if (growthMultipleEl) {
+            growthMultipleEl.textContent =
+              (final / totalContributions).toFixed(4) + "x";
+          }
 
           chart.data.labels = data.map(d => d.year);
           chart.data.datasets[0].data = data.map(d => d.amount);
           chart.update();
 
-          // --- Populate breakdown table ---
           const tableBody = $("breakdown-body");
-          tableBody.innerHTML = ""; // Clear previous results
+          if (tableBody) {
+            tableBody.innerHTML = ""; // Clear previous results
 
-          data.forEach(d => {
-            if (d.year === 0) return; // Skip year 0
+            data.forEach(d => {
+              if (d.year === 0) return;
 
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td class="p-4">${d.year}</td>
-              <td class="p-4">${d.amount.toLocaleString(undefined, {
-                style: "currency",
-                currency: "USD",
-              })}</td>
-              <td class="p-4">${d.interestThisYear.toLocaleString(undefined, {
-                style: "currency",
-                currency: "USD",
-              })}</td>
-              <td class="p-4">${d.totalContributions.toLocaleString(undefined, {
-                style: "currency",
-                currency: "USD",
-              })}</td>
-            `;
-            tableBody.appendChild(row);
-          });
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                <td class="p-4">${d.year}</td>
+                <td class="p-4">${d.amount.toLocaleString(undefined, {
+                  style: "currency",
+                  currency: "USD",
+                })}</td>
+                <td class="p-4">${d.interestThisYear.toLocaleString(undefined, {
+                  style: "currency",
+                  currency: "USD",
+                })}</td>
+                <td class="p-4">${d.totalContributions.toLocaleString(
+                  undefined,
+                  { style: "currency", currency: "USD" }
+                )}</td>
+              `;
+              tableBody.appendChild(row);
+            });
+          }
         }
 
-        $("calc").addEventListener("input", recalc);
+        const calcForm = $("calc");
+        if (calcForm) {
+          calcForm.addEventListener("input", recalc);
+        }
         recalc();
       });
     </script>
