@@ -1,0 +1,343 @@
+---
+import "@styles/compound-interest.css";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Compound Interest Calculator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Chart.js via CDN (UMD) -->
+    <script
+      is:inline
+      defer
+      src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
+    ></script>
+    <script is:inline>
+      // Define Chart.js type for TypeScript
+      /** @type {import("chart.js")} */
+      var Chart;
+    </script>
+  </head>
+  <body>
+    <!-- Page Header -->
+    <header class="page-header">
+      <h1 class="page-title">Compound Interest Calculator</h1>
+      <p class="page-subtitle">
+        See how your money grows over time with the power of compound interest
+      </p>
+    </header>
+
+    <!-- two‑column grid -->
+    <div class="container">
+      <!-- Input panel -->
+      <form id="calc" class="card">
+        <h2>Investment Details</h2>
+        <div class="form-group">
+          <label for="principal"
+            >Initial Investment ($)
+            <span class="info" title="The lump‑sum amount you invest today"
+              >ℹ️</span
+            >
+          </label>
+          <input
+            id="principal"
+            type="number"
+            step="0.01"
+            value="10000"
+            min="0"
+          />
+        </div>
+        <div class="form-group">
+          <label for="rate"
+            >Annual Interest Rate (%)
+            <span class="info" title="Nominal interest rate before compounding"
+              >ℹ️</span
+            >
+          </label>
+          <input id="rate" type="number" step="0.01" value="5" min="0" />
+        </div>
+        <div class="form-group">
+          <label for="years"
+            >Time Period (years)
+            <span
+              class="info"
+              title="How long you plan to let the investment grow">ℹ️</span
+            >
+          </label>
+          <input id="years" type="number" step="1" value="10" min="1" />
+        </div>
+        <div class="form-group">
+          <label for="frequency"
+            >Compounding Frequency
+            <span
+              class="info"
+              title="How many times per year the interest is added to the principal"
+              >ℹ️</span
+            >
+          </label>
+          <select id="frequency">
+            <option value="1">Annually</option>
+            <option value="4">Quarterly</option>
+            <option value="12" selected>Monthly</option>
+            <option value="365">Daily</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="contribution"
+            >Monthly Contribution ($)
+            <span class="info" title="Optional extra amount you add each month"
+              >ℹ️</span
+            >
+          </label>
+          <input
+            id="contribution"
+            type="number"
+            step="0.01"
+            value="500"
+            min="0"
+          />
+        </div>
+      </form>
+
+      <!-- Results panel -->
+      <div class="card">
+        <h2 class="sr-only">Results</h2>
+        <div class="stats">
+          <div class="stat"><h3>Final Amount</h3><p id="finalAmount">-</p></div>
+          <div class="stat">
+            <h3>Total Contributions</h3><p id="totalContrib">-</p>
+          </div>
+          <div class="stat">
+            <h3>Interest Earned</h3><p id="interestEarned">-</p>
+          </div>
+          <div class="stat">
+            <h3>Growth Multiple</h3><p id="growthMultiple">-</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Full‑width chart below the two‑column grid -->
+      <div class="card lg:col-span-2">
+        <canvas id="growthChart" height="100"></canvas>
+      </div>
+
+      <!-- Year-by-year breakdown table -->
+      <div class="card lg:col-span-2">
+        <h2 class="mb-4 text-2xl font-semibold">Year-by-Year Breakdown</h2>
+        <div class="overflow-x-auto">
+          <table id="breakdown-table" class="w-full text-left">
+            <thead>
+              <tr>
+                <th class="p-4">Year</th>
+                <th class="p-4">Value</th>
+                <th class="p-4">Interest Earned</th>
+                <th class="p-4">Total Contributions</th>
+              </tr>
+            </thead>
+            <tbody id="breakdown-body">
+              <!-- Rows will be injected by script -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script is:inline>
+      document.addEventListener("DOMContentLoaded", () => {
+        const $ = /** @type {<T extends HTMLElement>(id: string) => T | null} */ (
+          id => document.getElementById(id)
+        );
+
+        /**
+         * @typedef {{
+         *   year: number;
+         *   amount: number;
+         *   interestThisYear: number;
+         *   totalContributions: number;
+         * }} YearData
+         */
+
+        function computeData() {
+          const P = parseFloat(/** @type {HTMLInputElement} */ ($("principal"))?.value) || 0;
+          const r = (parseFloat(/** @type {HTMLInputElement} */ ($("rate"))?.value) || 0) / 100;
+          const t = parseInt(/** @type {HTMLInputElement} */ ($("years"))?.value) || 0;
+          const n = parseInt(/** @type {HTMLSelectElement} */ ($("frequency"))?.value) || 1;
+          const PMT = parseFloat(/** @type {HTMLInputElement} */ ($("contribution"))?.value) || 0;
+          const m = 12; // Monthly contributions
+
+          /** @type {YearData[]} */
+          const data = [];
+          let lastYearAmount = P;
+
+          for (let year = 0; year <= t; year++) {
+            const lumpSumFV = P * Math.pow(1 + r / n, n * year);
+
+            let annuityFV = 0;
+            if (PMT > 0 && r > 0) {
+              const annuityDenominator = Math.pow(1 + r / n, n / m) - 1;
+              if (annuityDenominator > 0) {
+                const annuityNumerator = Math.pow(1 + r / n, n * year) - 1;
+                annuityFV = PMT * (annuityNumerator / annuityDenominator);
+              } else {
+                annuityFV = PMT * m * year;
+              }
+            } else if (PMT > 0 && r === 0) {
+              annuityFV = PMT * m * year;
+            }
+
+            const amount = lumpSumFV + annuityFV;
+            const totalContributionsWithPrincipal = P + PMT * m * year;
+
+            let interestThisYear = 0;
+            if (year > 0) {
+              const annualContribution = PMT * m;
+              interestThisYear = amount - lastYearAmount - annualContribution;
+            }
+
+            data.push({
+              year,
+              amount,
+              interestThisYear,
+              totalContributions: totalContributionsWithPrincipal,
+            });
+
+            lastYearAmount = amount;
+          }
+
+          const totalContribOnly = PMT * m * t;
+          const finalAmount = data.at(-1)?.amount ?? 0;
+
+          return {
+            data,
+            final: finalAmount,
+            totalContrib: totalContribOnly,
+          };
+        }
+
+        const growthChartEl = /** @type {HTMLCanvasElement | null} */ ($("growthChart"));
+        if (!growthChartEl) return;
+
+        const ctx = growthChartEl.getContext("2d");
+        if (!ctx) return;
+
+        const chart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: [],
+            datasets: [
+              {
+                label: "Portfolio Value",
+                data: [],
+                tension: 0.25,
+                borderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: c =>
+                    c.parsed.y.toLocaleString(undefined, {
+                      style: "currency",
+                      currency: "USD",
+                      maximumFractionDigits: 0,
+                    }),
+                },
+              },
+            },
+            scales: {
+              x: { title: { display: true, text: "Year" } },
+              y: {
+                title: { display: true, text: "Value (USD)" },
+                ticks: {
+                  callback: (v) =>
+                    "$" + (Number(v) / 1000).toFixed(0) + "k",
+                },
+              },
+            },
+          },
+        });
+
+        function recalc() {
+          const { data, final, totalContrib } = computeData();
+
+          const finalAmountEl = $("finalAmount");
+          if (finalAmountEl) {
+            finalAmountEl.textContent = final.toLocaleString(undefined, {
+              style: "currency",
+              currency: "USD",
+            });
+          }
+
+          const principal = parseFloat(/** @type {HTMLInputElement} */ ($("principal"))?.value) || 0;
+          const totalContributions = totalContrib + principal;
+
+          const totalContribEl = $("totalContrib");
+          if (totalContribEl) {
+            totalContribEl.textContent = totalContributions.toLocaleString(
+              undefined,
+              { style: "currency", currency: "USD" }
+            );
+          }
+
+          const interest = final - totalContributions;
+          const interestEarnedEl = $("interestEarned");
+          if (interestEarnedEl) {
+            interestEarnedEl.textContent = interest.toLocaleString(undefined, {
+              style: "currency",
+              currency: "USD",
+            });
+          }
+
+          const growthMultipleEl = $("growthMultiple");
+          if (growthMultipleEl) {
+            growthMultipleEl.textContent =
+              (final / totalContributions).toFixed(4) + "x";
+          }
+
+          chart.data.labels = data.map(d => d.year);
+          chart.data.datasets[0].data = data.map(d => d.amount);
+          chart.update();
+
+          const tableBody = $("breakdown-body");
+          if (tableBody) {
+            tableBody.innerHTML = ""; // Clear previous results
+
+            data.forEach(d => {
+              if (d.year === 0) return;
+
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                <td class="p-4">${d.year}</td>
+                <td class="p-4">${d.amount.toLocaleString(undefined, {
+                  style: "currency",
+                  currency: "USD",
+                })}</td>
+                <td class="p-4">${d.interestThisYear.toLocaleString(undefined, {
+                  style: "currency",
+                  currency: "USD",
+                })}</td>
+                <td class="p-4">${d.totalContributions.toLocaleString(
+                  undefined,
+                  { style: "currency", currency: "USD" }
+                )}</td>
+              `;
+              tableBody.appendChild(row);
+            });
+          }
+        }
+
+        const calcForm = $("calc");
+        if (calcForm) {
+          calcForm.addEventListener("input", recalc);
+        }
+        recalc();
+      });
+    </script>
+  </body>
+</html>
