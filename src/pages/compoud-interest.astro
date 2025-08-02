@@ -50,7 +50,7 @@ import "@styles/compound-interest.css";
               >ℹ️</span
             >
           </label>
-          <input id="rate" type="number" step="0.01" value="7" min="0" />
+          <input id="rate" type="number" step="0.01" value="5" min="0" />
         </div>
         <div class="form-group">
           <label for="years"
@@ -60,7 +60,7 @@ import "@styles/compound-interest.css";
               title="How long you plan to let the investment grow">ℹ️</span
             >
           </label>
-          <input id="years" type="number" step="1" value="12" min="1" />
+          <input id="years" type="number" step="1" value="10" min="1" />
         </div>
         <div class="form-group">
           <label for="frequency"
@@ -119,7 +119,7 @@ import "@styles/compound-interest.css";
 
       <!-- Year-by-year breakdown table -->
       <div class="card lg:col-span-2">
-        <h2 class="text-2xl font-semibold mb-4">Year-by-Year Breakdown</h2>
+        <h2 class="mb-4 text-2xl font-semibold">Year-by-Year Breakdown</h2>
         <div class="overflow-x-auto">
           <table id="breakdown-table" class="w-full text-left">
             <thead>
@@ -148,22 +148,53 @@ import "@styles/compound-interest.css";
           const t = parseInt($("years").value) || 0;
           const n = parseInt($("frequency").value) || 1;
           const PMT = parseFloat($("contribution").value) || 0;
+          const m = 12; // Monthly contributions
 
           const data = [];
-          let totalContrib = 0;
+          let lastYearAmount = P;
 
           for (let year = 0; year <= t; year++) {
-            const periods = n * year;
-            const lumpSumFV = P * Math.pow(1 + r / n, periods);
-            const annuityFV =
-              PMT > 0
-                ? PMT * ((Math.pow(1 + r / n, periods) - 1) / (r / n))
-                : 0;
+            const lumpSumFV = P * Math.pow(1 + r / n, n * year);
+
+            let annuityFV = 0;
+            if (PMT > 0 && r > 0) {
+              const annuityDenominator = Math.pow(1 + r / n, n / m) - 1;
+              if (annuityDenominator > 0) {
+                const annuityNumerator = Math.pow(1 + r / n, n * year) - 1;
+                annuityFV = PMT * (annuityNumerator / annuityDenominator);
+              } else {
+                // Fallback for very small rates where precision issues might occur
+                annuityFV = PMT * m * year;
+              }
+            } else if (PMT > 0 && r === 0) {
+              annuityFV = PMT * m * year;
+            }
+
             const amount = lumpSumFV + annuityFV;
-            if (year > 0) totalContrib += PMT * 12;
-            data.push({ year, amount });
+            const totalContributionsWithPrincipal = P + PMT * m * year;
+
+            let interestThisYear = 0;
+            if (year > 0) {
+              const annualContribution = PMT * m;
+              interestThisYear = amount - lastYearAmount - annualContribution;
+            }
+
+            data.push({
+              year,
+              amount,
+              interestThisYear,
+              totalContributions: totalContributionsWithPrincipal,
+            });
+
+            lastYearAmount = amount;
           }
-          return { data, final: data.at(-1).amount, totalContrib };
+
+          const totalContribOnly = PMT * m * t;
+          return {
+            data,
+            final: data.at(-1).amount,
+            totalContrib: totalContribOnly,
+          };
         }
 
         // initialise Chart.js after script loads
@@ -224,7 +255,7 @@ import "@styles/compound-interest.css";
             currency: "USD",
           });
           $("growthMultiple").textContent =
-            (final / totalContributions).toFixed(2) + "x";
+            (final / totalContributions).toFixed(4) + "x";
 
           chart.data.labels = data.map(d => d.year);
           chart.data.datasets[0].data = data.map(d => d.amount);
@@ -234,26 +265,26 @@ import "@styles/compound-interest.css";
           const tableBody = $("breakdown-body");
           tableBody.innerHTML = ""; // Clear previous results
 
-          let lastYearAmount = parseFloat($("principal").value) || 0;
-          let cumulativeContributions = lastYearAmount;
-
-          data.forEach(({ year, amount }) => {
-            if (year === 0) return; // Skip year 0
-
-            const annualContribution = (parseFloat($("contribution").value) || 0) * 12;
-            const interestThisYear = amount - lastYearAmount - annualContribution;
-            cumulativeContributions += annualContribution;
+          data.forEach(d => {
+            if (d.year === 0) return; // Skip year 0
 
             const row = document.createElement("tr");
             row.innerHTML = `
-              <td class="p-4">${year}</td>
-              <td class="p-4">${amount.toLocaleString(undefined, { style: "currency", currency: "USD" })}</td>
-              <td class="p-4">${interestThisYear.toLocaleString(undefined, { style: "currency", currency: "USD" })}</td>
-              <td class="p-4">${cumulativeContributions.toLocaleString(undefined, { style: "currency", currency: "USD" })}</td>
+              <td class="p-4">${d.year}</td>
+              <td class="p-4">${d.amount.toLocaleString(undefined, {
+                style: "currency",
+                currency: "USD",
+              })}</td>
+              <td class="p-4">${d.interestThisYear.toLocaleString(undefined, {
+                style: "currency",
+                currency: "USD",
+              })}</td>
+              <td class="p-4">${d.totalContributions.toLocaleString(undefined, {
+                style: "currency",
+                currency: "USD",
+              })}</td>
             `;
             tableBody.appendChild(row);
-
-            lastYearAmount = amount;
           });
         }
 
