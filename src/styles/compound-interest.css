@@ -1,55 +1,54 @@
-
 @import "tailwindcss";
 @import "./global.css";
 
 @layer components {
-    .page-header {
-        @apply text-center my-8;
-    }
-    .page-title {
-        @apply text-4xl font-bold mb-2;
-    }
-    .page-subtitle {
-        @apply text-lg text-foreground/80;
-    }
-    .container {
-        @apply max-w-7xl mx-auto p-8 grid gap-8 grid-cols-1 lg:grid-cols-2;
-    }
-    .card {
-        @apply bg-background border border-border rounded-2xl p-8 shadow-lg;
-    }
-    .card h2 {
-        @apply text-2xl font-semibold mb-6;
-    }
-    .form-group {
-        @apply mb-6;
-    }
-    label {
-        @apply block font-semibold mb-2;
-    }
-    input,
-    select {
-        @apply w-full p-3 border border-border rounded-lg bg-background text-foreground;
-    }
-    .info {
-        @apply text-accent cursor-help ml-2;
-    }
-    .stats {
-        @apply grid gap-6;
-    }
-    .stat {
-        @apply bg-accent text-background rounded-2xl p-6 text-center;
-    }
-    .stat h3 {
-        @apply text-sm font-medium uppercase tracking-wider;
-    }
-    .stat p {
-        @apply text-3xl font-bold mt-1;
-    }
-    #breakdown-table th {
-        @apply border-b-2 border-border;
-    }
-    #breakdown-table tbody tr:nth-child(even) {
-        @apply bg-muted/20;
-    }
+  .page-header {
+    @apply my-8 text-center;
+  }
+  .page-title {
+    @apply mb-2 text-4xl font-bold;
+  }
+  .page-subtitle {
+    @apply text-lg text-foreground/80;
+  }
+  .container {
+    @apply mx-auto grid max-w-7xl grid-cols-1 gap-8 p-8 lg:grid-cols-2;
+  }
+  .card {
+    @apply rounded-2xl border border-border bg-background p-8 shadow-lg;
+  }
+  .card h2 {
+    @apply mb-6 text-2xl font-semibold;
+  }
+  .form-group {
+    @apply mb-6;
+  }
+  label {
+    @apply mb-2 block font-semibold;
+  }
+  input,
+  select {
+    @apply w-full rounded-lg border border-border bg-background p-3 text-foreground;
+  }
+  .info {
+    @apply ml-2 cursor-help text-accent;
+  }
+  .stats {
+    @apply grid gap-6;
+  }
+  .stat {
+    @apply rounded-2xl bg-accent p-6 text-center text-background;
+  }
+  .stat h3 {
+    @apply text-sm font-medium tracking-wider uppercase;
+  }
+  .stat p {
+    @apply mt-1 text-3xl font-bold;
+  }
+  #breakdown-table th {
+    @apply border-b-2 border-border;
+  }
+  #breakdown-table tbody tr:nth-child(even) {
+    @apply bg-muted/20;
+  }
 }
