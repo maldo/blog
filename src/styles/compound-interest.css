@@ -1,5 +1,12 @@
 @import "tailwindcss";
-@import "./global.css";
+
+@theme {
+  --color-foreground: var(--foreground);
+  --color-border: var(--border);
+  --color-background: var(--background);
+  --color-accent: var(--accent);
+  --color-muted: var(--muted);
+}
 
 @layer components {
   .page-header {
