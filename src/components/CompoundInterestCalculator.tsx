@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
 import type { Chart as ChartType } from "chart.js/auto";
-import "@styles/Compound-interest.css";
+import "@styles/compound-interest.css";
 
 interface YearData {
   year: number;
