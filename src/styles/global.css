@@ -10,6 +10,21 @@ html[data-theme="light"] {
   --accent: #1158d1;
   --muted: #bbc789;
   --border: #7cadff;
+  --primary: var(--accent);
+  --primary-foreground: var(--background);
+  --secondary: var(--muted);
+  --secondary-foreground: var(--foreground);
+  --destructive: #ef4444; /* A default red for errors */
+  --destructive-foreground: #f8fafc;
+  --muted-foreground: var(--foreground);
+  --accent-foreground: var(--background);
+  --card: var(--background);
+  --card-foreground: var(--foreground);
+  --popover: var(--background);
+  --popover-foreground: var(--foreground);
+  --input: var(--border);
+  --ring: var(--accent);
+  --radius: 0.5rem;
 }
 
 html[data-theme="dark"] {
@@ -18,6 +33,21 @@ html[data-theme="dark"] {
   --foreground: #eaedf3;
   --muted: #0c0e4f;
   --border: #303f8a;
+  --primary: var(--accent);
+  --primary-foreground: var(--background);
+  --secondary: var(--muted);
+  --secondary-foreground: var(--foreground);
+  --destructive: #ef4444; /* A default red for errors */
+  --destructive-foreground: #f8fafc;
+  --muted-foreground: var(--foreground);
+  --accent-foreground: var(--background);
+  --card: var(--background);
+  --card-foreground: var(--foreground);
+  --popover: var(--background);
+  --popover-foreground: var(--foreground);
+  --input: var(--border);
+  --ring: var(--accent);
+  --radius: 0.5rem;
 }
 
 @theme inline {

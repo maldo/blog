@@ -1,8 +1,8 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import CompoundInterestCalculator from "@/components/CompoundInterestCalculator.astro";
+import CompoundInterestCalculator from "@/components/CompoundInterestCalculator.tsx";
 ---
 
 <Layout title="Compound Interest Calculator">
-  <CompoundInterestCalculator />
+  <CompoundInterestCalculator client:load />
 </Layout>
