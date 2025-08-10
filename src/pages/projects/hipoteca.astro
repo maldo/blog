@@ -1,0 +1,75 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import MortgageCalculator from "@/components/MortgageCalculator";
+---
+
+<Layout
+  title="Calculadora de Hipoteca"
+  description="Calcula la cuota de tu hipoteca fácilmente."
+>
+  <div class="container">
+    <a href="/projects" class="back-link">&larr; Volver a Proyectos</a>
+    <MortgageCalculator client:load />
+    <div class="explanation">
+      <h2>¿Cómo funciona?</h2>
+      <p>
+        Esta calculadora te ayuda a estimar la cuota mensual de tu hipoteca
+        basándose en el sistema de amortización francés, el más común en España.
+      </p>
+      <ul>
+        <li>
+          <strong>Precio del Inmueble:</strong> El coste total de la vivienda que
+          quieres comprar.
+        </li>
+        <li>
+          <strong>Ahorros Aportados:</strong> La cantidad de dinero que vas a pagar
+          de entrada. Los bancos en España suelen financiar hasta el 80% del valor
+          de tasación o compraventa.
+        </li>
+        <li>
+          <strong>Plazo (años):</strong> El número de años en los que devolverás
+          el préstamo.
+        </li>
+        <li>
+          <strong>Tipo de Interés Anual (%):</strong> El interés que te cobra el
+          banco. Introduce el TIN de tu oferta.
+        </li>
+      </ul>
+      <p>
+        <em
+          ><strong>Nota:</strong> Esta es una simulación. La cuota final puede variar
+          según las condiciones de tu banco (seguros, comisiones, etc.).</em
+        >
+      </p>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  .back-link {
+    display: inline-block;
+    margin-bottom: 2rem;
+    text-decoration: none;
+    color: var(--color-accent);
+  }
+  .explanation {
+    margin-top: 3rem;
+    padding: 2rem;
+    background-color: #f4f8fa;
+    border-radius: 8px;
+  }
+  .explanation h2 {
+    margin-top: 0;
+  }
+  .explanation ul {
+    padding-left: 20px;
+  }
+  .explanation li {
+    margin-bottom: 0.5rem;
+  }
+</style>
