@@ -1,25 +1,46 @@
 ---
 import { getCollection } from "astro:content";
-const allPosts = await getCollection("post");
+const allPosts = await getCollection("blog");
 
 const { count } = Astro.props;
 
-function parseDate(dateStr) {
-  const [month, day, year] = dateStr.split(" ");
-  return new Date(`${month} ${parseInt(day)}, ${year}`);
+function parseDate(dateStr: string | Date): Date {
+  // Handle both "Jan 6, 2023" and ISO formats
+  if (dateStr instanceof Date) {
+    return dateStr;
+  }
+  if (dateStr.includes(",")) {
+    const [month, day, year] = dateStr.split(/[\s,]+/);
+    return new Date(`${month} ${parseInt(day)}, ${year}`);
+  }
+  return new Date(dateStr);
 }
 
 const sortedPosts = allPosts
   .map((post) => ({
     ...post,
-    date: parseDate(post.data.dateFormatted),
+    date: parseDate(post.data.pubDatetime || post.data.dateFormatted || new Date()),
   }))
   .sort((a, b) => b.date.getTime() - a.date.getTime());
 
 const postsLoop = sortedPosts.slice(0, count).map((post) => {
+  // Format the date for display
+  let displayDate = post.data.dateFormatted;
+  if (!displayDate && post.data.pubDatetime) {
+    const dateObj = post.data.pubDatetime instanceof Date
+      ? post.data.pubDatetime
+      : new Date(post.data.pubDatetime);
+    displayDate = dateObj.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  }
+
   return {
     ...(post.data || {}),
-    link: `/post/${post.slug}`,
+    dateFormatted: displayDate,
+    link: `/post/${post.id}`,
   };
 });
 ---
@@ -89,6 +110,6 @@ const postsLoop = sortedPosts.slice(0, count).map((post) => {
           </div>
         </div>
       </div>
-    )
+    );
   })
 }
