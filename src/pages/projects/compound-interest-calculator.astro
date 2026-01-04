@@ -1,0 +1,326 @@
+---
+import PageHeading from "@/components/page-heading.astro";
+import Layout from "@/layouts/main.astro";
+---
+
+<Layout title="Compound Interest Calculator">
+  <section class="relative z-20 max-w-4xl mx-auto my-12 px-7 lg:px-0">
+    <PageHeading
+      title="Compound Interest Calculator"
+      description="Calculate how your investment grows over time with compound interest and regular contributions."
+    />
+
+    <div class="mt-10 space-y-8">
+      <!-- Calculator Form -->
+      <div class="bg-white dark:bg-neutral-900 p-6 rounded-xl border border-gray-200 dark:border-neutral-800">
+        <form id="calculator-form" class="space-y-6">
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <!-- Initial Amount -->
+            <div>
+              <label for="principal" class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
+                Initial Amount (€)
+              </label>
+              <input
+                type="number"
+                id="principal"
+                name="principal"
+                value="10000"
+                min="0"
+                step="100"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent"
+              />
+            </div>
+
+            <!-- Interest Rate -->
+            <div>
+              <label for="rate" class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
+                Annual Interest Rate (%)
+              </label>
+              <input
+                type="number"
+                id="rate"
+                name="rate"
+                value="7"
+                min="0"
+                max="100"
+                step="0.1"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent"
+              />
+            </div>
+
+            <!-- Time Period -->
+            <div>
+              <label for="years" class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
+                Period (Years)
+              </label>
+              <input
+                type="number"
+                id="years"
+                name="years"
+                value="10"
+                min="1"
+                max="50"
+                step="1"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent"
+              />
+            </div>
+
+            <!-- Annual Contribution -->
+            <div>
+              <label for="contribution" class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
+                Annual Contribution (€)
+              </label>
+              <input
+                type="number"
+                id="contribution"
+                name="contribution"
+                value="1200"
+                min="0"
+                step="100"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            class="w-full px-6 py-3 text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 rounded-lg font-medium transition-colors"
+          >
+            Calculate
+          </button>
+        </form>
+      </div>
+
+      <!-- Results Section -->
+      <div id="results" class="hidden space-y-6">
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div class="bg-white dark:bg-neutral-900 p-6 rounded-xl border border-gray-200 dark:border-neutral-800">
+            <div class="text-sm text-gray-600 dark:text-neutral-400 mb-1">Final Amount</div>
+            <div id="final-amount" class="text-2xl font-bold text-gray-900 dark:text-neutral-100">€0</div>
+          </div>
+          <div class="bg-white dark:bg-neutral-900 p-6 rounded-xl border border-gray-200 dark:border-neutral-800">
+            <div class="text-sm text-gray-600 dark:text-neutral-400 mb-1">Total Contributions</div>
+            <div id="total-contributions" class="text-2xl font-bold text-gray-900 dark:text-neutral-100">€0</div>
+          </div>
+          <div class="bg-white dark:bg-neutral-900 p-6 rounded-xl border border-gray-200 dark:border-neutral-800">
+            <div class="text-sm text-gray-600 dark:text-neutral-400 mb-1">Total Interest Earned</div>
+            <div id="total-interest" class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">€0</div>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="bg-white dark:bg-neutral-900 p-6 rounded-xl border border-gray-200 dark:border-neutral-800">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-neutral-100 mb-4">Growth Over Time</h3>
+          <div class="relative h-80">
+            <canvas id="growth-chart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  import { Chart, registerables } from 'chart.js';
+  Chart.register(...registerables);
+
+  let chartInstance: Chart | null = null;
+
+  function calculateCompoundInterest(principal: number, rate: number, years: number, annualContribution: number) {
+    const yearlyData = [];
+    let currentAmount = principal;
+
+    for (let year = 0; year <= years; year++) {
+      yearlyData.push({
+        year,
+        amount: Math.round(currentAmount * 100) / 100,
+      });
+
+      if (year < years) {
+        // Add interest
+        currentAmount = currentAmount * (1 + rate / 100);
+        // Add annual contribution
+        currentAmount += annualContribution;
+      }
+    }
+
+    return yearlyData;
+  }
+
+  function formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('en-EU', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  }
+
+  function isDarkMode(): boolean {
+    return document.documentElement.classList.contains('dark');
+  }
+
+  function getChartColors() {
+    const dark = isDarkMode();
+    return {
+      gridColor: dark ? 'rgba(163, 163, 163, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+      textColor: dark ? '#a3a3a3' : '#666666',
+      lineColor: dark ? 'rgba(129, 140, 248, 1)' : 'rgba(79, 70, 229, 1)',
+      gradientStart: dark ? 'rgba(129, 140, 248, 0.3)' : 'rgba(79, 70, 229, 0.3)',
+      gradientEnd: dark ? 'rgba(129, 140, 248, 0.0)' : 'rgba(79, 70, 229, 0.0)',
+    };
+  }
+
+  function updateChart(data: { year: number; amount: number }[]) {
+    const canvas = document.getElementById('growth-chart') as HTMLCanvasElement;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const colors = getChartColors();
+
+    // Create gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, colors.gradientStart);
+    gradient.addColorStop(1, colors.gradientEnd);
+
+    const chartData = {
+      labels: data.map(d => `Year ${d.year}`),
+      datasets: [{
+        label: 'Total Amount',
+        data: data.map(d => d.amount),
+        borderColor: colors.lineColor,
+        backgroundColor: gradient,
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: colors.lineColor,
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+      }]
+    };
+
+    if (chartInstance) {
+      chartInstance.destroy();
+    }
+
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: chartData,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false,
+          },
+          tooltip: {
+            backgroundColor: isDarkMode() ? '#262626' : '#ffffff',
+            titleColor: isDarkMode() ? '#e5e5e5' : '#171717',
+            bodyColor: isDarkMode() ? '#a3a3a3' : '#737373',
+            borderColor: isDarkMode() ? '#404040' : '#e5e5e5',
+            borderWidth: 1,
+            padding: 12,
+            displayColors: false,
+            callbacks: {
+              label: function(context) {
+                return formatCurrency(context.parsed.y ?? 0);
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: colors.gridColor,
+            },
+            ticks: {
+              color: colors.textColor,
+              callback: function(value) {
+                return formatCurrency(Number(value));
+              }
+            }
+          },
+          x: {
+            grid: {
+              color: colors.gridColor,
+            },
+            ticks: {
+              color: colors.textColor,
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function handleFormSubmit(e: Event) {
+    e.preventDefault();
+
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+
+    const principal = Number(formData.get('principal'));
+    const rate = Number(formData.get('rate'));
+    const years = Number(formData.get('years'));
+    const contribution = Number(formData.get('contribution'));
+
+    // Calculate
+    const yearlyData = calculateCompoundInterest(principal, rate, years, contribution);
+    const finalAmount = yearlyData[yearlyData.length - 1].amount;
+    const totalContributions = principal + (contribution * years);
+    const totalInterest = finalAmount - totalContributions;
+
+    // Update summary
+    const finalAmountEl = document.getElementById('final-amount');
+    const totalContributionsEl = document.getElementById('total-contributions');
+    const totalInterestEl = document.getElementById('total-interest');
+
+    if (finalAmountEl) finalAmountEl.textContent = formatCurrency(finalAmount);
+    if (totalContributionsEl) totalContributionsEl.textContent = formatCurrency(totalContributions);
+    if (totalInterestEl) totalInterestEl.textContent = formatCurrency(totalInterest);
+
+    // Show results
+    const resultsEl = document.getElementById('results');
+    if (resultsEl) resultsEl.classList.remove('hidden');
+
+    // Update chart
+    updateChart(yearlyData);
+  }
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('calculator-form');
+    if (form) {
+      form.addEventListener('submit', handleFormSubmit);
+
+      // Trigger initial calculation
+      form.dispatchEvent(new Event('submit'));
+    }
+
+    // Listen for dark mode changes
+    const observer = new MutationObserver(() => {
+      if (chartInstance) {
+        // Get current data and redraw with new colors
+        const currentData = chartInstance.data.datasets[0].data as number[];
+        if (currentData.length > 0) {
+          const yearlyData = currentData.map((amount, index) => ({
+            year: index,
+            amount: amount
+          }));
+          updateChart(yearlyData);
+        }
+      }
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  });
+</script>
