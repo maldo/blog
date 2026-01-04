@@ -17,10 +17,7 @@ let headerElement = null;
 document.addEventListener("DOMContentLoaded", () => {
 	headerElement = document.getElementById("header");
 
-	if (
-		localStorage.getItem("dark_mode") &&
-		localStorage.getItem("dark_mode") === "true"
-	) {
+	if (localStorage.getItem("dark_mode") && localStorage.getItem("dark_mode") === "true") {
 		window.darkMode = true;
 		showNight();
 	} else {
@@ -52,9 +49,7 @@ window.stickyHeaderFuncionality = () => {
 window.evaluateHeaderPosition = () => {
 	if (window.scrollY > 16) {
 		headerElement.firstElementChild.classList.add(...stickyClassesContainer);
-		headerElement.firstElementChild.classList.remove(
-			...unstickyClassesContainer,
-		);
+		headerElement.firstElementChild.classList.remove(...unstickyClassesContainer);
 		headerElement.classList.add(...stickyClasses);
 		headerElement.classList.remove(...unstickyClasses);
 		document.getElementById("menu").classList.add("top-[56px]");
@@ -161,9 +156,7 @@ window.openMobileMenu = () => {
 	document.getElementById("mobileMenuBackground").classList.remove("hidden");
 
 	setTimeout(() => {
-		document
-			.getElementById("mobileMenuBackground")
-			.classList.remove("opacity-0");
+		document.getElementById("mobileMenuBackground").classList.remove("opacity-0");
 	}, 1);
 };
 
