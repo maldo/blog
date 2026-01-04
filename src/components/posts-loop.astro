@@ -37,10 +37,25 @@ const postsLoop = sortedPosts.slice(0, count).map((post) => {
     });
   }
 
+  // Extract year from the post's publication date for URL
+  let year = new Date().getFullYear().toString();
+  if (post.data.pubDatetime) {
+    const dateObj = post.data.pubDatetime instanceof Date
+      ? post.data.pubDatetime
+      : new Date(post.data.pubDatetime);
+    year = dateObj.getFullYear().toString();
+  } else if (post.data.dateFormatted) {
+    // Parse dateFormatted which might be in format "Jan 6, 2023"
+    const dateMatch = post.data.dateFormatted.match(/\d{4}/);
+    if (dateMatch) {
+      year = dateMatch[0];
+    }
+  }
+
   return {
     ...(post.data || {}),
     dateFormatted: displayDate,
-    link: `/post/${post.id}`,
+    link: `/post/${year}/${post.id}`,
   };
 });
 ---

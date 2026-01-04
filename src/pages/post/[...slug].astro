@@ -4,10 +4,27 @@ import { getCollection, render } from "astro:content";
 
 export async function getStaticPaths() {
   const posts = await getCollection("blog");
-  return posts.map((post) => ({
-    params: { slug: post.id },
-    props: { post },
-  }));
+  return posts.map((post) => {
+    // Extract year from the post's publication date
+    let year = new Date().getFullYear().toString();
+    if (post.data.pubDatetime) {
+      const dateObj = post.data.pubDatetime instanceof Date
+        ? post.data.pubDatetime
+        : new Date(post.data.pubDatetime);
+      year = dateObj.getFullYear().toString();
+    } else if (post.data.dateFormatted) {
+      // Parse dateFormatted which might be in format "Jan 6, 2023"
+      const dateMatch = post.data.dateFormatted.match(/\d{4}/);
+      if (dateMatch) {
+        year = dateMatch[0];
+      }
+    }
+
+    return {
+      params: { slug: `${year}/${post.id}` },
+      props: { post },
+    };
+  });
 }
 
 const { post } = Astro.props;
