@@ -18,7 +18,7 @@ const sortedPosts = allPosts
 	}))
 	.sort((a, b) => b.date.getTime() - a.date.getTime());
 
-const _postsLoop = sortedPosts.slice(0, count).map((post) => {
+const postsLoop = sortedPosts.slice(0, count).map((post) => {
 	// Parse and format the date for display
 	const dateObj =
 		post.data.pubDatetime instanceof Date ? post.data.pubDatetime : new Date(post.data.pubDatetime);
