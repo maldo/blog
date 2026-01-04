@@ -9,9 +9,8 @@ const postCollection = defineCollection({
     slug: z.string().optional(),
     title: z.string(),
     authors: z.string().optional(),
-    pubDatetime: z.union([z.string(), z.date()]).optional(),
+    pubDatetime: z.union([z.string(), z.date()]),
     description: z.string(),
-    dateFormatted: z.string().optional(),
     tags: z.array(z.string()).optional(),
   }),
 });
