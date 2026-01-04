@@ -1,21 +1,22 @@
 ---
-import Layout from "@/layouts/post.astro";
 import { getCollection, render } from "astro:content";
+import Layout from "@/layouts/post.astro";
 
 export async function getStaticPaths() {
-  const posts = await getCollection("blog");
-  return posts.map((post) => {
-    // Extract year from the post's publication date
-    const dateObj = post.data.pubDatetime instanceof Date
-      ? post.data.pubDatetime
-      : new Date(post.data.pubDatetime);
-    const year = dateObj.getFullYear().toString();
+	const posts = await getCollection("blog");
+	return posts.map((post) => {
+		// Extract year from the post's publication date
+		const dateObj =
+			post.data.pubDatetime instanceof Date
+				? post.data.pubDatetime
+				: new Date(post.data.pubDatetime);
+		const year = dateObj.getFullYear().toString();
 
-    return {
-      params: { slug: `${year}/${post.id}` },
-      props: { post },
-    };
-  });
+		return {
+			params: { slug: `${year}/${post.id}` },
+			props: { post },
+		};
+	});
 }
 
 const { post } = Astro.props;
