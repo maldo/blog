@@ -1,23 +1,58 @@
 [
 	{
-		"dates": "June 2018 · Present",
-		"role": "Front-end Engineer",
-		"company": "Full Truck Alliance",
-		"description": "Responsible for customer service and CRM system front-end development.",
-		"logo": "/assets/images/experiences/fta.ico"
+		"dates": "July 2023 · Present",
+		"role": "Senior Principal Software Engineer",
+		"company": "Perk",
+		"description": "Shape engineering strategy and technical roadmap for business-critical initiatives, providing architectural leadership while staying hands-on.",
+		"logo": "/assets/images/experiences/perk.svg"
 	},
 	{
-		"dates": "July 2015 · June 2018",
-		"role": "Front-end Engineer",
-		"company": "YOHO!",
-		"description": "Responsible for mobile front-end development of e-commerce platform.",
-		"logo": "/assets/images/experiences/yoho.ico"
+		"dates": "July 2021 · July 2023",
+		"role": "Principal Engineer & Engineering Manager",
+		"company": "Perk",
+		"description": "Led Foundations and Planners tribes (25+ engineers), managing senior engineers and tech leads while driving architecture and platform improvements.",
+		"logo": "/assets/images/experiences/perk.svg"
 	},
 	{
-		"dates": "September 2014 · July 2015 ",
-		"role": "Node.JS Developer",
-		"company": "WuLian",
-		"description": "Intern, involved in the development of Internet of Things cloud systems.",
-		"logo": "/assets/images/experiences/wulian.ico"
+		"dates": "March 2017 · July 2021",
+		"role": "Senior Software Engineer & Team Lead",
+		"company": "Perk",
+		"description": "Developed business travel platform with Python/Django, React, AWS/Terraform, led Flights team, and delivered travel policies features.",
+		"logo": "/assets/images/experiences/perk.svg"
+	},
+	{
+		"dates": "May 2014 · March 2017",
+		"role": "Senior Frontend Engineer",
+		"company": "Scytl",
+		"description": "Developed secure eVoting solutions with AngularJS and cryptography for major elections (iVote Australia, UAE, Spain), including on-site deployment support.",
+		"logo": "/assets/images/experiences/scytl.svg"
+	},
+	{
+		"dates": "May 2014 · May 2015",
+		"role": "Web & IT Manager",
+		"company": "ESN Spain",
+		"description": "Managed Drupal website, social media strategy, and IT infrastructure migration for ESN Spain national network.",
+		"logo": "/assets/images/experiences/esn.svg"
+	},
+	{
+		"dates": "October 2013 · April 2014",
+		"role": "Full-Stack Engineer",
+		"company": "Urge IO",
+		"description": "Developed versus.com comparison engine with Node.js/MongoDB backend and custom JavaScript frontend.",
+		"logo": "/assets/images/experiences/versus.ico"
+	},
+	{
+		"dates": "October 2012 · June 2013",
+		"role": "Backend Developer",
+		"company": "Safelayer Secure Communications",
+		"description": "Built scalable PaaS security applications with Node.js, OAuth2, MongoDB/Redis, and Nginx.",
+		"logo": "/assets/images/experiences/safelayer.jpeg"
+	},
+	{
+		"dates": "January 2012 · October 2012",
+		"role": "Full-Stack Developer",
+		"company": "Ministerio de Educacion Cultura y Deporte",
+		"description": "Full-stack developer working on CMS websites, Oracle/Java applications, educational databases, and library systems.",
+		"logo": "/assets/images/experiences/spain.svg"
 	}
 ]
