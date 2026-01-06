@@ -130,11 +130,13 @@ import Layout from "@/layouts/main.astro";
   function calculateCompoundInterest(principal: number, rate: number, years: number, annualContribution: number) {
     const yearlyData = [];
     let currentAmount = principal;
+    let cumulativeContributions = principal;
 
     for (let year = 0; year <= years; year++) {
       yearlyData.push({
         year,
         amount: Math.round(currentAmount * 100) / 100,
+        contributions: Math.round(cumulativeContributions * 100) / 100,
       });
 
       if (year < years) {
@@ -142,6 +144,7 @@ import Layout from "@/layouts/main.astro";
         currentAmount = currentAmount * (1 + rate / 100);
         // Add annual contribution
         currentAmount += annualContribution;
+        cumulativeContributions += annualContribution;
       }
     }
 
@@ -167,12 +170,15 @@ import Layout from "@/layouts/main.astro";
       gridColor: dark ? 'rgba(163, 163, 163, 0.1)' : 'rgba(0, 0, 0, 0.1)',
       textColor: dark ? '#a3a3a3' : '#666666',
       lineColor: dark ? 'rgba(129, 140, 248, 1)' : 'rgba(79, 70, 229, 1)',
+      contributionLineColor: dark ? 'rgba(251, 146, 60, 1)' : 'rgba(234, 88, 12, 1)',
       gradientStart: dark ? 'rgba(129, 140, 248, 0.3)' : 'rgba(79, 70, 229, 0.3)',
       gradientEnd: dark ? 'rgba(129, 140, 248, 0.0)' : 'rgba(79, 70, 229, 0.0)',
+      contributionGradientStart: dark ? 'rgba(251, 146, 60, 0.2)' : 'rgba(234, 88, 12, 0.2)',
+      contributionGradientEnd: dark ? 'rgba(251, 146, 60, 0.0)' : 'rgba(234, 88, 12, 0.0)',
     };
   }
 
-  function updateChart(data: { year: number; amount: number }[]) {
+  function updateChart(data: { year: number; amount: number; contributions: number }[]) {
     const canvas = document.getElementById('growth-chart') as HTMLCanvasElement;
     if (!canvas) return;
 
@@ -181,27 +187,47 @@ import Layout from "@/layouts/main.astro";
 
     const colors = getChartColors();
 
-    // Create gradient
+    // Create gradients
     const gradient = ctx.createLinearGradient(0, 0, 0, 400);
     gradient.addColorStop(0, colors.gradientStart);
     gradient.addColorStop(1, colors.gradientEnd);
 
+    const contributionGradient = ctx.createLinearGradient(0, 0, 0, 400);
+    contributionGradient.addColorStop(0, colors.contributionGradientStart);
+    contributionGradient.addColorStop(1, colors.contributionGradientEnd);
+
     const chartData = {
       labels: data.map(d => `Year ${d.year}`),
-      datasets: [{
-        label: 'Total Amount',
-        data: data.map(d => d.amount),
-        borderColor: colors.lineColor,
-        backgroundColor: gradient,
-        borderWidth: 2,
-        fill: true,
-        tension: 0.4,
-        pointBackgroundColor: colors.lineColor,
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-      }]
+      datasets: [
+        {
+          label: 'Total Amount',
+          data: data.map(d => d.amount),
+          borderColor: colors.lineColor,
+          backgroundColor: gradient,
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: colors.lineColor,
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+        },
+        {
+          label: 'Cumulative Contributions',
+          data: data.map(d => d.contributions),
+          borderColor: colors.contributionLineColor,
+          backgroundColor: contributionGradient,
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: colors.contributionLineColor,
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+        }
+      ]
     };
 
     if (chartInstance) {
@@ -216,7 +242,13 @@ import Layout from "@/layouts/main.astro";
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            display: false,
+            display: true,
+            position: 'top',
+            labels: {
+              color: colors.textColor,
+              usePointStyle: true,
+              padding: 15,
+            }
           },
           tooltip: {
             backgroundColor: isDarkMode() ? '#262626' : '#ffffff',
@@ -307,11 +339,13 @@ import Layout from "@/layouts/main.astro";
     const observer = new MutationObserver(() => {
       if (chartInstance) {
         // Get current data and redraw with new colors
-        const currentData = chartInstance.data.datasets[0].data as number[];
-        if (currentData.length > 0) {
-          const yearlyData = currentData.map((amount, index) => ({
+        const currentAmountData = chartInstance.data.datasets[0].data as number[];
+        const currentContributionData = chartInstance.data.datasets[1].data as number[];
+        if (currentAmountData.length > 0) {
+          const yearlyData = currentAmountData.map((amount, index) => ({
             year: index,
-            amount: amount
+            amount: amount,
+            contributions: currentContributionData[index] as number
           }));
           updateChart(yearlyData);
         }
