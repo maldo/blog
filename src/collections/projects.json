@@ -22,5 +22,11 @@
 		"description": "A Simple / Speedy / Secure Link Shortener with Analytics.",
 		"image": "/assets/images/projects/sink.cool.png",
 		"url": "https://sink.cool"
+	},
+	{
+		"name": "Kids Coloring Generator",
+		"description": "Pick a character, place & activity — generate a coloring page to print!",
+		"image": "/assets/images/projects/kids-coloring-generator.svg",
+		"url": "/projects/kids-coloring-generator"
 	}
 ]

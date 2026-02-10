@@ -1,0 +1,652 @@
+---
+import PageHeading from "@/components/page-heading.astro";
+import Layout from "@/layouts/main.astro";
+
+const characters = [
+	{ id: "car", label: "Car", emoji: "\u{1F697}" },
+	{ id: "pony", label: "Pony", emoji: "\u{1F434}" },
+	{ id: "unicorn", label: "Unicorn", emoji: "\u{1F984}" },
+	{ id: "dragon", label: "Dragon", emoji: "\u{1F409}" },
+	{ id: "cat", label: "Cat", emoji: "\u{1F431}" },
+	{ id: "dog", label: "Dog", emoji: "\u{1F436}" },
+	{ id: "butterfly", label: "Butterfly", emoji: "\u{1F98B}" },
+	{ id: "robot", label: "Robot", emoji: "\u{1F916}" },
+	{ id: "dinosaur", label: "Dinosaur", emoji: "\u{1F995}" },
+	{ id: "mermaid", label: "Mermaid", emoji: "\u{1F9DC}" },
+	{ id: "princess", label: "Princess", emoji: "\u{1F478}" },
+	{ id: "pirate", label: "Pirate", emoji: "\u{1F3F4}\u{200D}\u{2620}\u{FE0F}" },
+];
+
+const landscapes = [
+	{ id: "forest", label: "Forest", emoji: "\u{1F332}" },
+	{ id: "beach", label: "Beach", emoji: "\u{1F3D6}\u{FE0F}" },
+	{ id: "castle", label: "Castle", emoji: "\u{1F3F0}" },
+	{ id: "space", label: "Space", emoji: "\u{1F680}" },
+	{ id: "underwater", label: "Underwater", emoji: "\u{1F30A}" },
+	{ id: "garden", label: "Garden", emoji: "\u{1F33B}" },
+	{ id: "mountains", label: "Mountains", emoji: "\u{26F0}\u{FE0F}" },
+	{ id: "candy-land", label: "Candy Land", emoji: "\u{1F36D}" },
+];
+
+const activities = [
+	{ id: "flying", label: "Flying", emoji: "\u{1F4AB}" },
+	{ id: "playing", label: "Playing", emoji: "\u{1F3C0}" },
+	{ id: "sleeping", label: "Sleeping", emoji: "\u{1F4A4}" },
+	{ id: "dancing", label: "Dancing", emoji: "\u{1F483}" },
+	{ id: "running", label: "Running", emoji: "\u{1F3C3}" },
+	{ id: "reading", label: "Reading", emoji: "\u{1F4DA}" },
+	{ id: "exploring", label: "Exploring", emoji: "\u{1F9ED}" },
+	{ id: "cooking", label: "Cooking", emoji: "\u{1F373}" },
+];
+---
+
+<Layout title="Kids Coloring Generator">
+  <section class="relative z-20 max-w-4xl mx-auto my-12 px-7 lg:px-0">
+    <PageHeading
+      title="Kids Coloring Generator"
+      description="Pick a character, a place, and what they're doing — then generate a coloring page you can print!"
+    />
+
+    <!-- Fun kid-friendly area -->
+    <div class="mt-10 space-y-8" id="generator-app">
+
+      <!-- Step 1: Character -->
+      <div class="category-section">
+        <h3 class="category-title">
+          <span class="step-badge">1</span>
+          Pick a Character
+        </h3>
+        <div class="card-grid" id="characters-grid">
+          {characters.map((c) => (
+            <button
+              type="button"
+              class="pick-card"
+              data-category="character"
+              data-value={c.id}
+            >
+              <span class="pick-emoji">{c.emoji}</span>
+              <span class="pick-label">{c.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Step 2: Landscape -->
+      <div class="category-section">
+        <h3 class="category-title">
+          <span class="step-badge">2</span>
+          Pick a Place
+        </h3>
+        <div class="card-grid" id="landscapes-grid">
+          {landscapes.map((l) => (
+            <button
+              type="button"
+              class="pick-card"
+              data-category="landscape"
+              data-value={l.id}
+            >
+              <span class="pick-emoji">{l.emoji}</span>
+              <span class="pick-label">{l.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Step 3: Activity -->
+      <div class="category-section">
+        <h3 class="category-title">
+          <span class="step-badge">3</span>
+          What Are They Doing?
+        </h3>
+        <div class="card-grid" id="activities-grid">
+          {activities.map((a) => (
+            <button
+              type="button"
+              class="pick-card"
+              data-category="activity"
+              data-value={a.id}
+            >
+              <span class="pick-emoji">{a.emoji}</span>
+              <span class="pick-label">{a.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Selection summary & Generate -->
+      <div class="summary-bar" id="summary-bar">
+        <div class="summary-picks">
+          <span class="summary-chip empty" id="chip-character">?</span>
+          <span class="summary-plus">+</span>
+          <span class="summary-chip empty" id="chip-landscape">?</span>
+          <span class="summary-plus">+</span>
+          <span class="summary-chip empty" id="chip-activity">?</span>
+        </div>
+        <button
+          type="button"
+          id="generate-btn"
+          class="generate-btn"
+          disabled
+        >
+          <span id="generate-btn-text">Pick all 3 to generate!</span>
+          <svg id="generate-spinner" class="hidden animate-spin ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Error message -->
+      <div id="error-msg" class="hidden text-center p-4 rounded-2xl bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm font-medium">
+        Something went wrong. Please try again!
+      </div>
+
+      <!-- Result area -->
+      <div id="result-area" class="hidden">
+        <div class="result-container">
+          <img
+            id="coloring-image"
+            src=""
+            alt="Your coloring page"
+            class="coloring-image"
+          />
+        </div>
+        <div class="flex justify-center gap-4 mt-6">
+          <button type="button" id="print-btn" class="action-btn print-btn">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Print Coloring Page
+          </button>
+          <button type="button" id="new-btn" class="action-btn new-btn">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Make Another
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</Layout>
+
+<!-- Print-only view: only the image, fitted to A4 -->
+<div id="print-container">
+  <img id="print-image" src="" alt="Coloring page" />
+</div>
+
+<style>
+  /* ---- Kid-friendly styles ---- */
+
+  .category-section {
+    background: linear-gradient(135deg, #fef9c3 0%, #fbcfe8 50%, #c4b5fd 100%);
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  :global(html.dark) .category-section {
+    background: linear-gradient(135deg, #422006 0%, #4a044e 50%, #2e1065 100%);
+  }
+
+  .category-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #1e1b4b;
+    margin-bottom: 1rem;
+  }
+
+  :global(html.dark) .category-title {
+    color: #e9d5ff;
+  }
+
+  .step-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9999px;
+    background: #7c3aed;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+  }
+
+  @media (max-width: 640px) {
+    .card-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .pick-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.75rem 0.5rem;
+    border-radius: 1rem;
+    border: 3px solid transparent;
+    background: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+  }
+
+  :global(html.dark) .pick-card {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .pick-card:hover {
+    transform: scale(1.05);
+    border-color: #a78bfa;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+  }
+
+  .pick-card.selected {
+    border-color: #7c3aed;
+    background: rgba(124, 58, 237, 0.15);
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3);
+  }
+
+  :global(html.dark) .pick-card.selected {
+    border-color: #a78bfa;
+    background: rgba(167, 139, 250, 0.25);
+  }
+
+  .pick-emoji {
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .pick-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #4b5563;
+    text-align: center;
+  }
+
+  :global(html.dark) .pick-label {
+    color: #d1d5db;
+  }
+
+  /* ---- Summary bar ---- */
+
+  .summary-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1.25rem;
+    border-radius: 1.5rem;
+    background: white;
+    border: 3px dashed #c4b5fd;
+  }
+
+  :global(html.dark) .summary-bar {
+    background: #1c1917;
+    border-color: #6d28d9;
+  }
+
+  .summary-picks {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.5rem;
+  }
+
+  .summary-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    height: 2.5rem;
+    padding: 0 0.5rem;
+    border-radius: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: #f3f4f6;
+    color: #9ca3af;
+  }
+
+  :global(html.dark) .summary-chip {
+    background: #292524;
+    color: #6b7280;
+  }
+
+  .summary-chip.filled {
+    background: #ede9fe;
+    color: #1e1b4b;
+  }
+
+  :global(html.dark) .summary-chip.filled {
+    background: #3b0764;
+    color: #e9d5ff;
+  }
+
+  .summary-plus {
+    color: #a78bfa;
+    font-weight: 800;
+    font-size: 1.25rem;
+  }
+
+  /* ---- Generate button ---- */
+
+  .generate-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 2rem;
+    border-radius: 9999px;
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: white;
+    background: linear-gradient(135deg, #7c3aed, #ec4899);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);
+  }
+
+  .generate-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .generate-btn:not(:disabled):hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
+  }
+
+  /* ---- Result area ---- */
+
+  .result-container {
+    background: white;
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    border: 3px solid #e5e7eb;
+    display: flex;
+    justify-content: center;
+  }
+
+  :global(html.dark) .result-container {
+    background: #1c1917;
+    border-color: #44403c;
+  }
+
+  .coloring-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.75rem;
+  }
+
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+  }
+
+  .print-btn {
+    background: #7c3aed;
+    color: white;
+  }
+
+  .print-btn:hover {
+    background: #6d28d9;
+    transform: scale(1.03);
+  }
+
+  .new-btn {
+    background: #f3f4f6;
+    color: #374151;
+    border: 2px solid #d1d5db;
+  }
+
+  :global(html.dark) .new-btn {
+    background: #292524;
+    color: #d1d5db;
+    border-color: #57534e;
+  }
+
+  .new-btn:hover {
+    background: #e5e7eb;
+    transform: scale(1.03);
+  }
+
+  :global(html.dark) .new-btn:hover {
+    background: #3a3533;
+  }
+
+  /* ---- Print-only container (hidden on screen) ---- */
+
+  #print-container {
+    display: none;
+  }
+
+  @media print {
+    /* Hide everything on screen */
+    body > *:not(#print-container) {
+      display: none !important;
+    }
+
+    #print-container {
+      display: block !important;
+      margin: 0;
+      padding: 0;
+    }
+
+    #print-container img {
+      display: block;
+      width: 190mm;
+      max-height: 277mm;
+      object-fit: contain;
+      margin: 10mm auto;
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 10mm;
+    }
+  }
+</style>
+
+<script>
+  const API_URL = "https://coloring-api.example.workers.dev";
+
+  interface Selection {
+    character: string | null;
+    landscape: string | null;
+    activity: string | null;
+  }
+
+  const selection: Selection = {
+    character: null,
+    landscape: null,
+    activity: null,
+  };
+
+  // Map id -> emoji for summary chips
+  const emojiMap: Record<string, string> = {};
+
+  function init() {
+    // Build emoji lookup from all cards
+    document.querySelectorAll<HTMLButtonElement>(".pick-card").forEach((card) => {
+      const value = card.dataset.value;
+      const emoji = card.querySelector(".pick-emoji")?.textContent ?? "";
+      if (value) emojiMap[value] = emoji;
+    });
+
+    // Attach click handlers to all pick cards
+    document.querySelectorAll<HTMLButtonElement>(".pick-card").forEach((card) => {
+      card.addEventListener("click", () => {
+        const category = card.dataset.category as keyof Selection;
+        const value = card.dataset.value!;
+
+        // Toggle: if already selected, deselect; otherwise select
+        if (selection[category] === value) {
+          selection[category] = null;
+          card.classList.remove("selected");
+        } else {
+          // Deselect previous in same category
+          document
+            .querySelectorAll<HTMLButtonElement>(
+              `.pick-card[data-category="${category}"]`,
+            )
+            .forEach((c) => c.classList.remove("selected"));
+
+          selection[category] = value;
+          card.classList.add("selected");
+        }
+
+        updateSummary();
+      });
+    });
+
+    // Generate button
+    document.getElementById("generate-btn")?.addEventListener("click", generate);
+
+    // Print button
+    document.getElementById("print-btn")?.addEventListener("click", () => {
+      window.print();
+    });
+
+    // New button
+    document.getElementById("new-btn")?.addEventListener("click", resetAll);
+  }
+
+  function updateSummary() {
+    const categories: (keyof Selection)[] = [
+      "character",
+      "landscape",
+      "activity",
+    ];
+
+    for (const cat of categories) {
+      const chip = document.getElementById(`chip-${cat}`);
+      if (!chip) continue;
+      if (selection[cat]) {
+        chip.textContent = emojiMap[selection[cat]!] ?? "?";
+        chip.classList.remove("empty");
+        chip.classList.add("filled");
+      } else {
+        chip.textContent = "?";
+        chip.classList.remove("filled");
+        chip.classList.add("empty");
+      }
+    }
+
+    const btn = document.getElementById(
+      "generate-btn",
+    ) as HTMLButtonElement | null;
+    const btnText = document.getElementById("generate-btn-text");
+    const allPicked =
+      selection.character && selection.landscape && selection.activity;
+
+    if (btn) btn.disabled = !allPicked;
+    if (btnText)
+      btnText.textContent = allPicked
+        ? "Generate Coloring Page!"
+        : "Pick all 3 to generate!";
+  }
+
+  async function generate() {
+    const btn = document.getElementById(
+      "generate-btn",
+    ) as HTMLButtonElement | null;
+    const btnText = document.getElementById("generate-btn-text");
+    const spinner = document.getElementById("generate-spinner");
+    const errorMsg = document.getElementById("error-msg");
+    const resultArea = document.getElementById("result-area");
+
+    if (!btn || !selection.character || !selection.landscape || !selection.activity)
+      return;
+
+    // UI: loading state
+    btn.disabled = true;
+    if (btnText) btnText.textContent = "Generating...";
+    spinner?.classList.remove("hidden");
+    errorMsg?.classList.add("hidden");
+    resultArea?.classList.add("hidden");
+
+    try {
+      const response = await fetch(`${API_URL}/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          character: selection.character,
+          landscape: selection.landscape,
+          activity: selection.activity,
+        }),
+      });
+
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
+
+      const data = await response.json();
+
+      // Expect { image_url: string } or { image_base64: string }
+      const imgSrc: string =
+        data.image_url ?? `data:image/png;base64,${data.image_base64}`;
+
+      // Set both screen image and print image
+      const coloringImg = document.getElementById(
+        "coloring-image",
+      ) as HTMLImageElement | null;
+      const printImg = document.getElementById(
+        "print-image",
+      ) as HTMLImageElement | null;
+
+      if (coloringImg) coloringImg.src = imgSrc;
+      if (printImg) printImg.src = imgSrc;
+
+      resultArea?.classList.remove("hidden");
+    } catch {
+      errorMsg?.classList.remove("hidden");
+    } finally {
+      // Reset button
+      spinner?.classList.add("hidden");
+      if (btnText) btnText.textContent = "Generate Coloring Page!";
+      const allPicked =
+        selection.character && selection.landscape && selection.activity;
+      if (btn) btn.disabled = !allPicked;
+    }
+  }
+
+  function resetAll() {
+    selection.character = null;
+    selection.landscape = null;
+    selection.activity = null;
+
+    document
+      .querySelectorAll<HTMLButtonElement>(".pick-card")
+      .forEach((c) => c.classList.remove("selected"));
+
+    document.getElementById("result-area")?.classList.add("hidden");
+    document.getElementById("error-msg")?.classList.add("hidden");
+
+    updateSummary();
+
+    // Scroll back to top of generator
+    document.getElementById("generator-app")?.scrollIntoView({ behavior: "smooth" });
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+</script>
