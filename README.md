@@ -2,8 +2,8 @@
 
 A personal blog and portfolio site built with [Astro](https://astro.build) and styled with Tailwind CSS. Features dark mode support, blog posts, and a clean, modern design.
 
-![Astro](https://img.shields.io/badge/Astro-5.x-orange?style=flat-square&logo=astro)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.x-38bdf8?style=flat-square&logo=tailwindcss)
+![Astro](https://img.shields.io/badge/Astro-7.x-orange?style=flat-square&logo=astro)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.x-38bdf8?style=flat-square&logo=tailwindcss)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6?style=flat-square&logo=typescript)
 ![pnpm](https://img.shields.io/badge/pnpm-9.x-f69220?style=flat-square&logo=pnpm)
 
@@ -21,7 +21,7 @@ A personal blog and portfolio site built with [Astro](https://astro.build) and s
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v20+)
+- [Node.js](https://nodejs.org/) (v22.12+)
 - [pnpm](https://pnpm.io/) (v9.12.2 required)
 
 ### Installation
@@ -82,7 +82,6 @@ pnpm check
 │   │   └── post/           # Dynamic blog post routes
 │   └── content.config.ts   # Content collection config
 ├── astro.config.mjs        # Astro configuration
-├── tailwind.config.mjs     # Tailwind CSS configuration
 └── tsconfig.json           # TypeScript configuration
 ```
 

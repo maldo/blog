@@ -69,10 +69,18 @@ Use these in imports: `import Layout from "@/layouts/post.astro"`
 
 ## Styling
 
-- Uses Tailwind CSS with Typography plugin
-- Dark mode: class-based with `dark:` prefix
+- Uses Tailwind CSS v4 with Typography plugin, wired up via the `@tailwindcss/vite`
+  plugin in `astro.config.mjs` (there is no `@astrojs/tailwind` integration)
+- Tailwind is configured CSS-first in `src/assets/css/main.css` — there is no
+  `tailwind.config.mjs`. Source globs go in `@source`, plugins in `@plugin`, and
+  theme overrides in `@theme`
+- `src/assets/css/main.css` is imported from `src/layouts/main.astro`
+- Dark mode: class-based with `dark:` prefix, declared as a `@custom-variant` in
+  `main.css` that matches `.dark` on `<html>`
 - Biome handles code formatting and linting (not Prettier/ESLint)
 
 ## Package Manager
 
 **Must use pnpm** - specified as `pnpm@9.12.2` in package.json
+
+Astro 7 requires Node.js >= 22.12.0 (see `.node-version`).
