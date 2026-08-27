@@ -30,7 +30,13 @@ const { title } = Astro.props;
         border-radius: 20px;
       }
     </style>
-    <link rel="icon" type="image/x-icon" href="../assets/images/favicon.png" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link
+      rel="icon"
+      type="image/png"
+      href="/assets/images/favicon.png"
+      sizes="192x192"
+    />
     <Fragment set:html={import.meta.env.HEADER_INJECT} />
   </head>
   <body class="antialiased bg-white dark:bg-neutral-950">
