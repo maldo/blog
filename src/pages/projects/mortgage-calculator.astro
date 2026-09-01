@@ -1,0 +1,492 @@
+---
+import PageHeading from "@/components/page-heading.astro";
+import Layout from "@/layouts/main.astro";
+---
+
+<Layout title="Mortgage Calculator">
+  <section class="relative z-20 max-w-4xl mx-auto my-12 px-7 lg:px-0">
+    <PageHeading
+      title="Mortgage Calculator"
+      description="Work out your monthly payment, how much interest you'll pay, and how the loan is paid down year by year."
+    />
+
+    <div class="mt-10 space-y-8">
+      <!-- Calculator Form -->
+      <div class="bg-white dark:bg-neutral-900 p-6 rounded-xl border border-gray-200 dark:border-neutral-800">
+        <form id="mortgage-form" class="space-y-6">
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <!-- Property Price -->
+            <div>
+              <label for="price" class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
+                Property Price (€)
+              </label>
+              <input
+                type="number"
+                id="price"
+                name="price"
+                value="250000"
+                min="0"
+                step="1000"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent"
+              />
+            </div>
+
+            <!-- Down Payment -->
+            <div>
+              <label for="downpayment" class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
+                Down Payment (€)
+              </label>
+              <input
+                type="number"
+                id="downpayment"
+                name="downpayment"
+                value="50000"
+                min="0"
+                step="1000"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent"
+              />
+            </div>
+
+            <!-- Interest Rate -->
+            <div>
+              <label for="rate" class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
+                Annual Interest Rate (%)
+              </label>
+              <input
+                type="number"
+                id="rate"
+                name="rate"
+                value="3.5"
+                min="0"
+                max="25"
+                step="0.05"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent"
+              />
+            </div>
+
+            <!-- Term -->
+            <div>
+              <label for="years" class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
+                Term (Years)
+              </label>
+              <input
+                type="number"
+                id="years"
+                name="years"
+                value="25"
+                min="1"
+                max="40"
+                step="1"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          <p
+            id="form-error"
+            class="hidden text-sm font-medium text-red-600 dark:text-red-400"
+          >
+          </p>
+
+          <button
+            type="submit"
+            class="w-full px-6 py-3 text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 rounded-lg font-medium transition-colors"
+          >
+            Calculate
+          </button>
+        </form>
+      </div>
+
+      <!-- Results Section -->
+      <div id="results" class="hidden space-y-6">
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="bg-white dark:bg-neutral-900 p-6 rounded-xl border border-gray-200 dark:border-neutral-800">
+            <div class="text-sm text-gray-600 dark:text-neutral-400 mb-1">Monthly Payment</div>
+            <div id="monthly-payment" class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">€0</div>
+          </div>
+          <div class="bg-white dark:bg-neutral-900 p-6 rounded-xl border border-gray-200 dark:border-neutral-800">
+            <div class="text-sm text-gray-600 dark:text-neutral-400 mb-1">Loan Amount</div>
+            <div id="loan-amount" class="text-2xl font-bold text-gray-900 dark:text-neutral-100">€0</div>
+          </div>
+          <div class="bg-white dark:bg-neutral-900 p-6 rounded-xl border border-gray-200 dark:border-neutral-800">
+            <div class="text-sm text-gray-600 dark:text-neutral-400 mb-1">Total Interest</div>
+            <div id="total-interest" class="text-2xl font-bold text-orange-600 dark:text-orange-400">€0</div>
+          </div>
+          <div class="bg-white dark:bg-neutral-900 p-6 rounded-xl border border-gray-200 dark:border-neutral-800">
+            <div class="text-sm text-gray-600 dark:text-neutral-400 mb-1">Total Paid</div>
+            <div id="total-paid" class="text-2xl font-bold text-gray-900 dark:text-neutral-100">€0</div>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="bg-white dark:bg-neutral-900 p-6 rounded-xl border border-gray-200 dark:border-neutral-800">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-neutral-100 mb-4">Loan Balance Over Time</h3>
+          <div class="relative h-80">
+            <canvas id="amortization-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Yearly Breakdown -->
+        <div class="bg-white dark:bg-neutral-900 p-6 rounded-xl border border-gray-200 dark:border-neutral-800">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-neutral-100 mb-4">Yearly Breakdown</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+              <thead class="text-gray-600 dark:text-neutral-400 border-b border-gray-200 dark:border-neutral-800">
+                <tr>
+                  <th scope="col" class="py-2 pr-4 font-medium">Year</th>
+                  <th scope="col" class="py-2 pr-4 font-medium text-right">Principal</th>
+                  <th scope="col" class="py-2 pr-4 font-medium text-right">Interest</th>
+                  <th scope="col" class="py-2 font-medium text-right">Remaining</th>
+                </tr>
+              </thead>
+              <tbody
+                id="schedule-body"
+                class="text-gray-900 dark:text-neutral-100 divide-y divide-gray-100 dark:divide-neutral-800"
+              >
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  import { Chart, registerables } from 'chart.js';
+  Chart.register(...registerables);
+
+  interface YearRow {
+    year: number;
+    balance: number;
+    yearPrincipal: number;
+    yearInterest: number;
+    cumulativePrincipal: number;
+    cumulativeInterest: number;
+  }
+
+  let chartInstance: Chart | null = null;
+  let currentSchedule: YearRow[] = [];
+
+  function buildSchedule(loan: number, annualRate: number, years: number) {
+    const months = years * 12;
+    const monthlyRate = annualRate / 100 / 12;
+
+    // Standard annuity payment; falls back to a plain split when the rate is 0.
+    const monthlyPayment =
+      monthlyRate === 0
+        ? loan / months
+        : (loan * monthlyRate) / (1 - (1 + monthlyRate) ** -months);
+
+    const rows: YearRow[] = [
+      {
+        year: 0,
+        balance: loan,
+        yearPrincipal: 0,
+        yearInterest: 0,
+        cumulativePrincipal: 0,
+        cumulativeInterest: 0,
+      },
+    ];
+
+    let balance = loan;
+    let cumulativePrincipal = 0;
+    let cumulativeInterest = 0;
+
+    for (let year = 1; year <= years; year++) {
+      let yearPrincipal = 0;
+      let yearInterest = 0;
+
+      for (let month = 0; month < 12; month++) {
+        const interest = balance * monthlyRate;
+        // The final payment only covers whatever principal is left.
+        const principal = Math.min(monthlyPayment - interest, balance);
+        balance -= principal;
+        yearPrincipal += principal;
+        yearInterest += interest;
+      }
+
+      cumulativePrincipal += yearPrincipal;
+      cumulativeInterest += yearInterest;
+
+      rows.push({
+        year,
+        balance: Math.max(balance, 0),
+        yearPrincipal,
+        yearInterest,
+        cumulativePrincipal,
+        cumulativeInterest,
+      });
+    }
+
+    return { monthlyPayment, rows, totalInterest: cumulativeInterest };
+  }
+
+  function formatCurrency(amount: number, decimals = 0): string {
+    return new Intl.NumberFormat('en-EU', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    }).format(amount);
+  }
+
+  function isDarkMode(): boolean {
+    return document.documentElement.classList.contains('dark');
+  }
+
+  function getChartColors() {
+    const dark = isDarkMode();
+    return {
+      gridColor: dark ? 'rgba(163, 163, 163, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+      textColor: dark ? '#a3a3a3' : '#666666',
+      balanceColor: dark ? 'rgba(129, 140, 248, 1)' : 'rgba(79, 70, 229, 1)',
+      interestColor: dark ? 'rgba(251, 146, 60, 1)' : 'rgba(234, 88, 12, 1)',
+      principalColor: dark ? 'rgba(52, 211, 153, 1)' : 'rgba(5, 150, 105, 1)',
+      balanceGradientStart: dark ? 'rgba(129, 140, 248, 0.3)' : 'rgba(79, 70, 229, 0.3)',
+      balanceGradientEnd: dark ? 'rgba(129, 140, 248, 0.0)' : 'rgba(79, 70, 229, 0.0)',
+    };
+  }
+
+  function updateChart(rows: YearRow[]) {
+    const canvas = document.getElementById('amortization-chart') as HTMLCanvasElement;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const colors = getChartColors();
+
+    const balanceGradient = ctx.createLinearGradient(0, 0, 0, 400);
+    balanceGradient.addColorStop(0, colors.balanceGradientStart);
+    balanceGradient.addColorStop(1, colors.balanceGradientEnd);
+
+    const chartData = {
+      labels: rows.map(r => `Year ${r.year}`),
+      datasets: [
+        {
+          label: 'Remaining Balance',
+          data: rows.map(r => r.balance),
+          borderColor: colors.balanceColor,
+          backgroundColor: balanceGradient,
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: colors.balanceColor,
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 3,
+          pointHoverRadius: 6,
+        },
+        {
+          label: 'Principal Paid',
+          data: rows.map(r => r.cumulativePrincipal),
+          borderColor: colors.principalColor,
+          backgroundColor: 'transparent',
+          borderWidth: 2,
+          fill: false,
+          tension: 0.4,
+          pointBackgroundColor: colors.principalColor,
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 3,
+          pointHoverRadius: 6,
+        },
+        {
+          label: 'Interest Paid',
+          data: rows.map(r => r.cumulativeInterest),
+          borderColor: colors.interestColor,
+          backgroundColor: 'transparent',
+          borderWidth: 2,
+          fill: false,
+          tension: 0.4,
+          pointBackgroundColor: colors.interestColor,
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 3,
+          pointHoverRadius: 6,
+        }
+      ]
+    };
+
+    if (chartInstance) {
+      chartInstance.destroy();
+    }
+
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: chartData,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              color: colors.textColor,
+              usePointStyle: true,
+              padding: 15,
+            }
+          },
+          tooltip: {
+            backgroundColor: isDarkMode() ? '#262626' : '#ffffff',
+            titleColor: isDarkMode() ? '#e5e5e5' : '#171717',
+            bodyColor: isDarkMode() ? '#a3a3a3' : '#737373',
+            borderColor: isDarkMode() ? '#404040' : '#e5e5e5',
+            borderWidth: 1,
+            padding: 12,
+            callbacks: {
+              label: function(context) {
+                return `${context.dataset.label}: ${formatCurrency(context.parsed.y ?? 0)}`;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: colors.gridColor,
+            },
+            ticks: {
+              color: colors.textColor,
+              callback: function(value) {
+                return formatCurrency(Number(value));
+              }
+            }
+          },
+          x: {
+            grid: {
+              color: colors.gridColor,
+            },
+            ticks: {
+              color: colors.textColor,
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function updateSchedule(rows: YearRow[]) {
+    const body = document.getElementById('schedule-body');
+    if (!body) return;
+
+    body.innerHTML = '';
+
+    // Year 0 is the starting balance, so it has nothing to report.
+    for (const row of rows.slice(1)) {
+      const tr = document.createElement('tr');
+
+      const cells = [
+        { text: String(row.year), className: 'py-2 pr-4' },
+        { text: formatCurrency(row.yearPrincipal), className: 'py-2 pr-4 text-right' },
+        { text: formatCurrency(row.yearInterest), className: 'py-2 pr-4 text-right' },
+        { text: formatCurrency(row.balance), className: 'py-2 text-right' },
+      ];
+
+      for (const cell of cells) {
+        const td = document.createElement('td');
+        td.textContent = cell.text;
+        td.className = cell.className;
+        tr.appendChild(td);
+      }
+
+      body.appendChild(tr);
+    }
+  }
+
+  function showError(message: string) {
+    const errorEl = document.getElementById('form-error');
+    const resultsEl = document.getElementById('results');
+
+    if (errorEl) {
+      errorEl.textContent = message;
+      errorEl.classList.remove('hidden');
+    }
+    if (resultsEl) resultsEl.classList.add('hidden');
+  }
+
+  function clearError() {
+    const errorEl = document.getElementById('form-error');
+    if (errorEl) {
+      errorEl.textContent = '';
+      errorEl.classList.add('hidden');
+    }
+  }
+
+  function handleFormSubmit(e: Event) {
+    e.preventDefault();
+
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+
+    const price = Number(formData.get('price'));
+    const downPayment = Number(formData.get('downpayment'));
+    const rate = Number(formData.get('rate'));
+    const years = Number(formData.get('years'));
+
+    const loan = price - downPayment;
+
+    if (loan <= 0) {
+      showError('The down payment must be smaller than the property price.');
+      return;
+    }
+    if (years < 1) {
+      showError('The term must be at least one year.');
+      return;
+    }
+
+    clearError();
+
+    const { monthlyPayment, rows, totalInterest } = buildSchedule(loan, rate, years);
+    currentSchedule = rows;
+
+    // Update summary
+    const monthlyPaymentEl = document.getElementById('monthly-payment');
+    const loanAmountEl = document.getElementById('loan-amount');
+    const totalInterestEl = document.getElementById('total-interest');
+    const totalPaidEl = document.getElementById('total-paid');
+
+    if (monthlyPaymentEl) monthlyPaymentEl.textContent = formatCurrency(monthlyPayment, 2);
+    if (loanAmountEl) loanAmountEl.textContent = formatCurrency(loan);
+    if (totalInterestEl) totalInterestEl.textContent = formatCurrency(totalInterest);
+    if (totalPaidEl) totalPaidEl.textContent = formatCurrency(loan + totalInterest);
+
+    // Show results
+    const resultsEl = document.getElementById('results');
+    if (resultsEl) resultsEl.classList.remove('hidden');
+
+    updateChart(rows);
+    updateSchedule(rows);
+  }
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('mortgage-form');
+    if (form) {
+      form.addEventListener('submit', handleFormSubmit);
+
+      // Trigger initial calculation
+      form.dispatchEvent(new Event('submit'));
+    }
+
+    // Listen for dark mode changes
+    const observer = new MutationObserver(() => {
+      if (chartInstance && currentSchedule.length > 0) {
+        updateChart(currentSchedule);
+      }
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  });
+</script>
