@@ -470,7 +470,11 @@ const activities = [
 </style>
 
 <script>
-  const API_URL = "https://coloring-api.example.workers.dev";
+  // Base URL of the coloring-api Worker (maldo/dev-apps), set at build time.
+  const API_URL: string =
+    import.meta.env.PUBLIC_COLORING_API_URL ??
+    "https://coloring-api.example.workers.dev";
+  const DEFAULT_ERROR = "Something went wrong. Please try again!";
 
   interface Selection {
     character: string | null;
@@ -585,6 +589,7 @@ const activities = [
     if (btnText) btnText.textContent = "Generating...";
     spinner?.classList.remove("hidden");
     errorMsg?.classList.add("hidden");
+    if (errorMsg) errorMsg.textContent = DEFAULT_ERROR;
     resultArea?.classList.add("hidden");
 
     try {
@@ -598,13 +603,21 @@ const activities = [
         }),
       });
 
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
+      const data = await response.json().catch(() => ({}));
 
-      const data = await response.json();
+      if (!response.ok) {
+        // 429 means the rate limit or the daily image budget was hit; the API
+        // sends a kid-friendly message for it.
+        if (response.status === 429 && errorMsg && data.error) {
+          errorMsg.textContent = data.error;
+        }
+        throw new Error(`API error: ${response.status}`);
+      }
 
-      // Expect { image_url: string } or { image_base64: string }
+      // Expect { image_url: string } or { image_base64: string, mime_type?: string }
       const imgSrc: string =
-        data.image_url ?? `data:image/png;base64,${data.image_base64}`;
+        data.image_url ??
+        `data:${data.mime_type ?? "image/png"};base64,${data.image_base64}`;
 
       // Set both screen image and print image
       const coloringImg = document.getElementById(
