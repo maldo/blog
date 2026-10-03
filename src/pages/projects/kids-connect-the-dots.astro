@@ -1,0 +1,221 @@
+---
+import PageHeading from "@/components/page-heading.astro";
+import "@/assets/css/puzzles.css";
+import Layout from "@/layouts/main.astro";
+import { DOT_COUNTS, NUMBERING_MODES } from "@/lib/puzzles/dots";
+import { SHAPE_BOX, shapes } from "@/lib/puzzles/shapes";
+---
+
+<Layout title="Kids Connect the Dots">
+  <section class="relative z-20 max-w-4xl mx-auto my-12 px-7 lg:px-0">
+    <PageHeading
+      title="Kids Connect the Dots"
+      description="Pick a picture, how many dots and how to count — then print a sheet to connect! Share the link and anyone gets the same puzzle."
+    />
+
+    <div class="mt-10 space-y-8" id="dots-app">
+
+      <!-- Step 1: Shape -->
+      <div class="pz-section">
+        <h3 class="pz-title"><span class="pz-badge">1</span> Pick a Picture</h3>
+        <div class="pz-grid">
+          <button type="button" class="pz-card" data-shape="random">
+            <span class="pz-emoji">{"\u{1F3B2}"}</span>
+            <span class="pz-label">Surprise me!</span>
+          </button>
+          {shapes.map((s) => (
+            <button type="button" class="pz-card" data-shape={s.id}>
+              <svg class="pz-shape-icon" viewBox={`0 0 ${SHAPE_BOX} ${SHAPE_BOX}`} aria-hidden="true">
+                <path d={s.path}></path>
+              </svg>
+              <span class="pz-label">{s.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Step 2: Dots -->
+      <div class="pz-section">
+        <h3 class="pz-title"><span class="pz-badge">2</span> How Many Dots?</h3>
+        <div class="pz-chips" id="dots-chips">
+          {DOT_COUNTS.map((n) => (
+            <button type="button" class="pz-chip" data-dots={n}>{n}</button>
+          ))}
+        </div>
+        <p class="pz-hint">More dots make a harder puzzle.</p>
+      </div>
+
+      <!-- Step 3: Counting -->
+      <div class="pz-section">
+        <h3 class="pz-title"><span class="pz-badge">3</span> How Do We Count?</h3>
+        <div class="pz-chips" id="mode-chips">
+          {NUMBERING_MODES.map((m) => (
+            <button type="button" class="pz-chip" data-mode={m.id}>{m.label}</button>
+          ))}
+        </div>
+        <p class="pz-hint" id="mode-hint"></p>
+      </div>
+
+      <!-- Actions -->
+      <div class="pz-bar">
+        <button type="button" id="new-btn" class="pz-btn pz-btn-primary">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          New puzzle
+        </button>
+        <button type="button" id="print-btn" class="pz-btn pz-btn-solid">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+          Print
+        </button>
+        <button type="button" id="copy-btn" class="pz-btn pz-btn-soft">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+          </svg>
+          Copy link
+        </button>
+        <label class="pz-toggle">
+          <input type="checkbox" id="answer-toggle" />
+          Include answer key
+        </label>
+        <span class="pz-toast" id="toast" role="status" aria-live="polite"></span>
+      </div>
+
+      <!-- Puzzle -->
+      <div class="pz-paper">
+        <h3>Connect the dots to see what it is!</h3>
+        <div id="dots-svg"></div>
+      </div>
+
+      <div class="pz-paper hidden" id="answer-paper">
+        <p class="pz-paper-note">Answer key — prints on page 2</p>
+        <div id="answer-svg"></div>
+      </div>
+
+    </div>
+  </section>
+</Layout>
+
+<!-- Print-only view, filled by the script below -->
+<div id="print-container"></div>
+
+<script>
+  import {
+    type DotsSettings,
+    type NumberingMode,
+    type PathMeasurer,
+    buildDots,
+    dotsSettingsToParams,
+    isModeAvailable,
+    parseDotsSettings,
+    renderDotsSvg,
+  } from "@/lib/puzzles/dots";
+  import { newSeed } from "@/lib/puzzles/random";
+
+  const SVG_NS = "http://www.w3.org/2000/svg";
+
+  // getPointAtLength needs a real <path> element, so the browser supplies the measuring.
+  const probe = document.createElementNS(SVG_NS, "svg");
+  const probePath = document.createElementNS(SVG_NS, "path");
+  probe.setAttribute("width", "0");
+  probe.setAttribute("height", "0");
+  probe.style.position = "absolute";
+  probe.appendChild(probePath);
+  document.body.appendChild(probe);
+
+  const measure: PathMeasurer = (pathData) => {
+    probePath.setAttribute("d", pathData);
+    return {
+      length: probePath.getTotalLength(),
+      pointAt: (distance) => {
+        const p = probePath.getPointAtLength(distance);
+        return { x: p.x, y: p.y };
+      },
+    };
+  };
+
+  let settings: DotsSettings = parseDotsSettings(new URLSearchParams(location.search), newSeed());
+
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+  const answerToggle = $<HTMLInputElement>("answer-toggle");
+
+  const MODE_HINTS: Record<NumberingMode, string> = {
+    count: "Connect 1, 2, 3… in order, then back to the start.",
+    skip2: "Skip counting by 2s: 2, 4, 6…",
+    skip5: "Skip counting by 5s: 5, 10, 15…",
+    alphabet: "Follow the alphabet: A, B, C…",
+    backwards: "Count down! Start at the biggest number and work back to 1.",
+  };
+
+  function render() {
+    const puzzle = buildDots(settings, measure);
+    const svg = renderDotsSvg(puzzle);
+    const key = renderDotsSvg(puzzle, true);
+    const withKey = answerToggle.checked;
+    const first = puzzle.dots[0].label;
+
+    $("dots-svg").innerHTML = svg;
+    $("answer-svg").innerHTML = key;
+    $("answer-paper").classList.toggle("hidden", !withKey);
+
+    const sheet = (title: string, note: string, body: string) =>
+      `<section class="print-sheet"><h1>${title}</h1><p>${note}</p>${body}</section>`;
+    $("print-container").innerHTML =
+      sheet("Connect the dots!", `Start at the circled dot (${first}) and draw a line to each dot in order.`, svg) +
+      (withKey ? sheet(`Answer key: ${puzzle.shape.label}`, "The finished picture.", key) : "");
+
+    for (const el of document.querySelectorAll<HTMLElement>("[data-shape]"))
+      el.classList.toggle("selected", el.dataset.shape === settings.shape);
+    for (const el of document.querySelectorAll<HTMLButtonElement>("[data-dots]"))
+      el.classList.toggle("selected", Number(el.dataset.dots) === settings.dots);
+    for (const el of document.querySelectorAll<HTMLButtonElement>("[data-mode]")) {
+      const mode = el.dataset.mode as NumberingMode;
+      el.classList.toggle("selected", mode === settings.mode);
+      // The alphabet only has 26 letters.
+      el.disabled = !isModeAvailable(mode, settings.dots);
+      el.title = el.disabled ? "Only available with 26 dots or fewer" : "";
+    }
+    $("mode-hint").textContent = MODE_HINTS[settings.mode];
+
+    history.replaceState(null, "", `${location.pathname}?${dotsSettingsToParams(settings)}`);
+  }
+
+  function update(patch: Partial<DotsSettings>) {
+    const next = { ...settings, ...patch };
+    // Picking more dots than the alphabet can cover falls back to counting.
+    if (!isModeAvailable(next.mode, next.dots)) next.mode = "count";
+    settings = next;
+    render();
+  }
+
+  for (const el of document.querySelectorAll<HTMLElement>("[data-shape]"))
+    el.addEventListener("click", () => update({ shape: el.dataset.shape! }));
+  for (const el of document.querySelectorAll<HTMLElement>("[data-dots]"))
+    el.addEventListener("click", () => update({ dots: Number(el.dataset.dots) }));
+  for (const el of document.querySelectorAll<HTMLElement>("[data-mode]"))
+    el.addEventListener("click", () => update({ mode: el.dataset.mode as NumberingMode }));
+  answerToggle.addEventListener("change", render);
+
+  $("new-btn").addEventListener("click", () => update({ seed: newSeed() }));
+  $("print-btn").addEventListener("click", () => window.print());
+
+  let toastTimer: number | undefined;
+  $("copy-btn").addEventListener("click", async () => {
+    let message = "Link copied!";
+    try {
+      await navigator.clipboard.writeText(location.href);
+    } catch {
+      message = "Copy the link from the address bar.";
+    }
+    const toast = $("toast");
+    toast.textContent = message;
+    clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(() => {
+      toast.textContent = "";
+    }, 2500);
+  });
+
+  render();
+</script>
