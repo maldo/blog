@@ -1,0 +1,232 @@
+---
+import PageHeading from "@/components/page-heading.astro";
+import "@/assets/css/puzzles.css";
+import Layout from "@/layouts/main.astro";
+import { AGE_PRESETS, ALGORITHMS, MAX_SIZE, MIN_SIZE } from "@/lib/puzzles/maze";
+import { characters, landscapes } from "@/lib/puzzles/themes";
+---
+
+<Layout title="Kids Maze Maker">
+  <section class="relative z-20 max-w-4xl mx-auto my-12 px-7 lg:px-0">
+    <PageHeading
+      title="Kids Maze Maker"
+      description="Pick an age, a character and a place — then print a fresh maze to solve! Share the link and anyone gets the same maze."
+    />
+
+    <div class="mt-10 space-y-8" id="maze-app">
+
+      <!-- Step 1: Age -->
+      <div class="pz-section">
+        <h3 class="pz-title"><span class="pz-badge">1</span> How Old Is the Explorer?</h3>
+        <div class="pz-chips" id="age-chips">
+          {AGE_PRESETS.map((p) => (
+            <button type="button" class="pz-chip" data-age={p.id}>
+              {p.label}
+              <small>{p.size}×{p.size}</small>
+            </button>
+          ))}
+        </div>
+        <p class="pz-hint" id="age-hint"></p>
+      </div>
+
+      <!-- Step 2: Character -->
+      <div class="pz-section">
+        <h3 class="pz-title"><span class="pz-badge">2</span> Pick a Character</h3>
+        <div class="pz-grid">
+          {characters.map((c) => (
+            <button type="button" class="pz-card" data-category="char" data-value={c.id}>
+              <span class="pz-emoji">{c.emoji}</span>
+              <span class="pz-label">{c.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Step 3: Place -->
+      <div class="pz-section">
+        <h3 class="pz-title"><span class="pz-badge">3</span> Pick a Place</h3>
+        <div class="pz-grid">
+          {landscapes.map((l) => (
+            <button type="button" class="pz-card" data-category="place" data-value={l.id}>
+              <span class="pz-emoji">{l.emoji}</span>
+              <span class="pz-label">{l.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Step 4: Tweaks -->
+      <div class="pz-section">
+        <h3 class="pz-title"><span class="pz-badge">4</span> Make It Easier or Harder</h3>
+        <label class="pz-hint block mb-2 mt-0" for="size-range">
+          Size: <span id="size-value"></span>
+        </label>
+        <input
+          id="size-range"
+          class="pz-range"
+          type="range"
+          min={MIN_SIZE}
+          max={MAX_SIZE}
+          step="1"
+        />
+        <div class="pz-chips mt-5" id="algo-chips">
+          {ALGORITHMS.map((a) => (
+            <button type="button" class="pz-chip" data-algo={a.id}>
+              {a.label}
+              <small>{a.blurb}</small>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="pz-bar">
+        <button type="button" id="new-btn" class="pz-btn pz-btn-primary">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          New maze
+        </button>
+        <button type="button" id="print-btn" class="pz-btn pz-btn-solid">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+          Print
+        </button>
+        <button type="button" id="copy-btn" class="pz-btn pz-btn-soft">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+          </svg>
+          Copy link
+        </button>
+        <label class="pz-toggle">
+          <input type="checkbox" id="answer-toggle" />
+          Include answer key
+        </label>
+        <span class="pz-toast" id="toast" role="status" aria-live="polite"></span>
+      </div>
+
+      <!-- Puzzle -->
+      <div class="pz-paper" id="maze-paper">
+        <h3 id="maze-heading"></h3>
+        <div id="maze-svg"></div>
+      </div>
+
+      <div class="pz-paper hidden" id="answer-paper">
+        <p class="pz-paper-note">Answer key — prints on page 2</p>
+        <div id="answer-svg"></div>
+      </div>
+
+    </div>
+  </section>
+</Layout>
+
+<!-- Print-only view, filled by the script below -->
+<div id="print-container"></div>
+
+<script>
+  import {
+    AGE_PRESETS,
+    ALGORITHMS,
+    type Algorithm,
+    type MazeSettings,
+    agePreset,
+    buildMaze,
+    mazeHeading,
+    parseSettings,
+    renderMazeSvg,
+    settingsForAge,
+    settingsToParams,
+  } from "@/lib/puzzles/maze";
+  import { newSeed } from "@/lib/puzzles/random";
+
+  let settings: MazeSettings = parseSettings(
+    new URLSearchParams(location.search),
+    newSeed(),
+  );
+
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+  const answerToggle = $<HTMLInputElement>("answer-toggle");
+  const sizeRange = $<HTMLInputElement>("size-range");
+
+  function render() {
+    const puzzle = buildMaze(settings);
+    const heading = mazeHeading(puzzle);
+    const maze = renderMazeSvg(puzzle);
+    const solved = renderMazeSvg(puzzle, true);
+    const withKey = answerToggle.checked;
+
+    $("maze-heading").textContent = heading;
+    $("maze-svg").innerHTML = maze;
+    $("answer-svg").innerHTML = solved;
+    $("answer-paper").classList.toggle("hidden", !withKey);
+
+    const sheet = (title: string, svg: string, note = "") =>
+      `<section class="print-sheet"><h1>${title}</h1>${note}${svg}</section>`;
+    $("print-container").innerHTML =
+      sheet(heading, maze) + (withKey ? sheet("Answer key", solved) : "");
+
+    // Controls
+    for (const el of document.querySelectorAll<HTMLElement>("[data-age]"))
+      el.classList.toggle("selected", el.dataset.age === settings.age);
+    for (const el of document.querySelectorAll<HTMLElement>("[data-algo]"))
+      el.classList.toggle("selected", el.dataset.algo === settings.algo);
+    for (const el of document.querySelectorAll<HTMLElement>(".pz-card")) {
+      const key = el.dataset.category as "char" | "place";
+      el.classList.toggle("selected", el.dataset.value === settings[key]);
+    }
+    sizeRange.value = String(settings.size);
+    $("size-value").textContent = `${settings.size} × ${settings.size}`;
+    const preset = agePreset(settings.age);
+    const algo = ALGORITHMS.find((a) => a.id === settings.algo);
+    $("age-hint").textContent = preset.wide
+      ? "Extra-wide corridors and a short trip, perfect for little hands."
+      : `${algo?.blurb ?? ""}. The finish is the farthest spot from the start.`;
+
+    history.replaceState(null, "", `${location.pathname}?${settingsToParams(settings)}`);
+  }
+
+  function update(patch: Partial<MazeSettings>) {
+    settings = { ...settings, ...patch };
+    render();
+  }
+
+  for (const el of document.querySelectorAll<HTMLElement>("[data-age]")) {
+    el.addEventListener("click", () => {
+      const age = AGE_PRESETS.find((p) => p.id === el.dataset.age);
+      if (!age) return;
+      // An age preset resets size and algorithm, but keeps the seed and the theme.
+      const base = settingsForAge(age.id, settings.seed, settings.char, settings.place);
+      update(base);
+    });
+  }
+  for (const el of document.querySelectorAll<HTMLElement>("[data-algo]"))
+    el.addEventListener("click", () => update({ algo: el.dataset.algo as Algorithm }));
+  for (const el of document.querySelectorAll<HTMLElement>(".pz-card"))
+    el.addEventListener("click", () =>
+      update({ [el.dataset.category as "char" | "place"]: el.dataset.value! }),
+    );
+  sizeRange.addEventListener("input", () => update({ size: Number(sizeRange.value) }));
+  answerToggle.addEventListener("change", render);
+
+  $("new-btn").addEventListener("click", () => update({ seed: newSeed() }));
+  $("print-btn").addEventListener("click", () => window.print());
+
+  let toastTimer: number | undefined;
+  $("copy-btn").addEventListener("click", async () => {
+    let message = "Link copied!";
+    try {
+      await navigator.clipboard.writeText(location.href);
+    } catch {
+      message = "Copy the link from the address bar.";
+    }
+    const toast = $("toast");
+    toast.textContent = message;
+    clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(() => {
+      toast.textContent = "";
+    }, 2500);
+  });
+
+  render();
+</script>

@@ -10,5 +10,11 @@
 		"description": "Work out your monthly payment and see how the loan is paid down over time.",
 		"image": "/assets/images/projects/mortgage-calculator.svg",
 		"url": "/projects/mortgage-calculator"
+	},
+	{
+		"name": "Kids Maze Maker",
+		"description": "Pick an age, a character & a place — print a maze to solve, with an answer key!",
+		"image": "/assets/images/projects/kids-maze-maker.svg",
+		"url": "/projects/kids-maze-maker"
 	}
 ]
