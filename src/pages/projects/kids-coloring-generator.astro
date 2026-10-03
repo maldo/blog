@@ -443,8 +443,9 @@ const activities = [
   }
 
   @media print {
-    /* Hide everything on screen */
-    body > *:not(#print-container) {
+    /* Hide everything on screen. :global() is required because <body> and the
+       header/footer come from the layout, so a scoped selector never matches. */
+    :global(body > *:not(#print-container)) {
       display: none !important;
     }
 
