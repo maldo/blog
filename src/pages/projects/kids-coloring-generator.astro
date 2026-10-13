@@ -142,14 +142,49 @@ const activities = [
         </div>
       </div>
 
+      <!-- Gallery: the newest 50 pages anyone generated -->
+      <div class="gallery-section" id="gallery">
+        <div class="gallery-header">
+          <h3 class="category-title">
+            <span class="step-badge">{"\u{1F5BC}\u{FE0F}"}</span>
+            Coloring Gallery
+          </h3>
+          <p class="gallery-hint">
+            The last 50 pages made here. Tap the ones you like and print them all at once!
+          </p>
+        </div>
+
+        <div class="gallery-toolbar" id="gallery-toolbar" hidden>
+          <button type="button" id="gallery-select-all" class="toolbar-btn">
+            Select all
+          </button>
+          <button type="button" id="gallery-clear" class="toolbar-btn" disabled>
+            Clear
+          </button>
+          <button
+            type="button"
+            id="gallery-print"
+            class="action-btn print-btn"
+            disabled
+          >
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            <span id="gallery-print-text">Print selected</span>
+          </button>
+        </div>
+
+        <p id="gallery-status" class="gallery-status">Loading gallery...</p>
+
+        <div class="gallery-grid" id="gallery-grid"></div>
+      </div>
+
     </div>
   </section>
 </Layout>
 
-<!-- Print-only view: only the image, fitted to A4 -->
-<div id="print-container">
-  <img id="print-image" src="" alt="Coloring page" />
-</div>
+<!-- Print-only view: the chosen images, one per A4 page -->
+<div id="print-container"></div>
 
 <style>
   /* ---- Kid-friendly styles ---- */
@@ -411,6 +446,171 @@ const activities = [
     background: #3a3533;
   }
 
+  /* ---- Gallery ---- */
+
+  .gallery-section {
+    background: linear-gradient(135deg, #cffafe 0%, #ddd6fe 50%, #fbcfe8 100%);
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  :global(html.dark) .gallery-section {
+    background: linear-gradient(135deg, #083344 0%, #2e1065 50%, #4a044e 100%);
+  }
+
+  .gallery-header .category-title {
+    margin-bottom: 0.25rem;
+  }
+
+  .gallery-hint {
+    font-size: 0.9rem;
+    color: #4b5563;
+    margin-bottom: 1rem;
+  }
+
+  :global(html.dark) .gallery-hint {
+    color: #d1d5db;
+  }
+
+  .gallery-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .gallery-toolbar[hidden] {
+    display: none;
+  }
+
+  .gallery-toolbar .print-btn {
+    margin-left: auto;
+  }
+
+  .toolbar-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    background: rgba(255, 255, 255, 0.8);
+    color: #374151;
+    border: 2px solid #c4b5fd;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  :global(html.dark) .toolbar-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e5e7eb;
+    border-color: #6d28d9;
+  }
+
+  .toolbar-btn:disabled,
+  .action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .gallery-status {
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #6b7280;
+    padding: 1rem 0;
+  }
+
+  :global(html.dark) .gallery-status {
+    color: #9ca3af;
+  }
+
+  .gallery-status:empty {
+    display: none;
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.75rem;
+  }
+
+  @media (max-width: 768px) {
+    .gallery-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 420px) {
+    .gallery-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  :global(.gallery-card) {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.4rem;
+    border-radius: 1rem;
+    border: 3px solid transparent;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  :global(html.dark .gallery-card) {
+    background: #1c1917;
+  }
+
+  :global(.gallery-card:hover) {
+    transform: scale(1.03);
+    border-color: #a78bfa;
+  }
+
+  :global(.gallery-card[aria-pressed="true"]) {
+    border-color: #7c3aed;
+    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.35);
+  }
+
+  :global(.gallery-card img) {
+    width: 100%;
+    aspect-ratio: 1024 / 1440;
+    object-fit: contain;
+    background: white;
+    border-radius: 0.6rem;
+  }
+
+  :global(.gallery-card-label) {
+    font-size: 1rem;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  :global(.gallery-check) {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 9999px;
+    border: 2px solid #a78bfa;
+    background: rgba(255, 255, 255, 0.9);
+    color: transparent;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  :global(.gallery-card[aria-pressed="true"] .gallery-check) {
+    background: #7c3aed;
+    border-color: #7c3aed;
+    color: white;
+  }
+
   /* ---- Print-only container (hidden on screen) ---- */
 
   #print-container {
@@ -430,12 +630,20 @@ const activities = [
       padding: 0;
     }
 
-    #print-container img {
+    /* One image per A4 page; the size fits the 190 x 277 mm printable area
+       left by the @page margin, so no page spills onto a blank one. */
+    :global(#print-container img) {
       display: block;
       width: 190mm;
-      max-height: 277mm;
+      height: 270mm;
       object-fit: contain;
-      margin: 10mm auto;
+      margin: 0 auto;
+      break-inside: avoid;
+      break-after: page;
+    }
+
+    :global(#print-container img:last-child) {
+      break-after: auto;
     }
 
     @page {
@@ -451,6 +659,19 @@ const activities = [
     import.meta.env.PUBLIC_COLORING_API_URL ??
     "https://coloring-api.example.workers.dev";
   const DEFAULT_ERROR = "Something went wrong. Please try again!";
+
+  interface GalleryImage {
+    id: string;
+    character: string;
+    landscape: string;
+    activity: string;
+    created_at: string;
+    url: string;
+  }
+
+  // Ids picked in the gallery, kept across gallery reloads.
+  const gallerySelection = new Set<string>();
+  let galleryImages: GalleryImage[] = [];
 
   interface Selection {
     character: string | null;
@@ -506,11 +727,162 @@ const activities = [
 
     // Print button
     document.getElementById("print-btn")?.addEventListener("click", () => {
-      window.print();
+      const img = document.getElementById(
+        "coloring-image",
+      ) as HTMLImageElement | null;
+      if (img?.src) printImages([img.src]);
     });
 
     // New button
     document.getElementById("new-btn")?.addEventListener("click", resetAll);
+
+    // Gallery
+    document
+      .getElementById("gallery-select-all")
+      ?.addEventListener("click", () => {
+        for (const image of galleryImages) gallerySelection.add(image.id);
+        renderGallery();
+      });
+    document.getElementById("gallery-clear")?.addEventListener("click", () => {
+      gallerySelection.clear();
+      renderGallery();
+    });
+    document.getElementById("gallery-print")?.addEventListener("click", () => {
+      printImages(
+        galleryImages
+          .filter((image) => gallerySelection.has(image.id))
+          .map((image) => image.url),
+      );
+    });
+
+    loadGallery();
+  }
+
+  /** Put the given images in the print-only container, one per page, and print. */
+  async function printImages(srcs: string[]) {
+    const container = document.getElementById("print-container");
+    if (!container || srcs.length === 0) return;
+
+    container.replaceChildren(
+      ...srcs.map((src) => {
+        const img = document.createElement("img");
+        img.src = src;
+        img.alt = "Coloring page";
+        return img;
+      }),
+    );
+
+    // Printing before the images are decoded leaves blank pages.
+    await Promise.all(
+      [...container.querySelectorAll("img")].map((img) =>
+        img.decode().catch(() => {}),
+      ),
+    );
+    window.print();
+  }
+
+  async function loadGallery() {
+    const status = document.getElementById("gallery-status");
+    try {
+      const response = await fetch(`${API_URL}/gallery`);
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
+      const data = (await response.json()) as { images?: GalleryImage[] };
+      galleryImages = data.images ?? [];
+
+      // Forget picks that dropped out of the newest 50.
+      const ids = new Set(galleryImages.map((image) => image.id));
+      for (const id of gallerySelection) {
+        if (!ids.has(id)) gallerySelection.delete(id);
+      }
+
+      if (status) {
+        status.textContent = galleryImages.length
+          ? ""
+          : "No pages yet. Make the first one!";
+      }
+      renderGallery();
+    } catch {
+      if (status && galleryImages.length === 0) {
+        status.textContent = "The gallery couldn't be loaded right now.";
+      }
+    }
+  }
+
+  function renderGallery() {
+    const grid = document.getElementById("gallery-grid");
+    if (!grid) return;
+
+    grid.replaceChildren(
+      ...galleryImages.map((image) => {
+        const selected = gallerySelection.has(image.id);
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "gallery-card";
+        card.setAttribute("aria-pressed", String(selected));
+
+        const label = [image.character, image.landscape, image.activity]
+          .map((id) => emojiMap[id] ?? "")
+          .join(" ");
+        const names = [image.character, image.landscape, image.activity].join(
+          ", ",
+        );
+
+        const img = document.createElement("img");
+        img.src = image.url;
+        img.alt = `Coloring page: ${names}`;
+        img.loading = "lazy";
+        img.decoding = "async";
+
+        const check = document.createElement("span");
+        check.className = "gallery-check";
+        check.setAttribute("aria-hidden", "true");
+        check.textContent = "\u2713";
+
+        const caption = document.createElement("span");
+        caption.className = "gallery-card-label";
+        caption.textContent = label;
+        caption.title = names;
+
+        card.append(img, check, caption);
+        card.addEventListener("click", () => {
+          if (gallerySelection.has(image.id)) {
+            gallerySelection.delete(image.id);
+          } else {
+            gallerySelection.add(image.id);
+          }
+          renderGallery();
+        });
+        return card;
+      }),
+    );
+
+    updateGalleryToolbar();
+  }
+
+  function updateGalleryToolbar() {
+    const toolbar = document.getElementById("gallery-toolbar");
+    const selectAll = document.getElementById(
+      "gallery-select-all",
+    ) as HTMLButtonElement | null;
+    const clear = document.getElementById(
+      "gallery-clear",
+    ) as HTMLButtonElement | null;
+    const print = document.getElementById(
+      "gallery-print",
+    ) as HTMLButtonElement | null;
+    const printText = document.getElementById("gallery-print-text");
+    const count = gallerySelection.size;
+
+    if (toolbar) toolbar.hidden = galleryImages.length === 0;
+    if (selectAll) selectAll.disabled = count === galleryImages.length;
+    if (clear) clear.disabled = count === 0;
+    if (print) print.disabled = count === 0;
+    if (printText) {
+      printText.textContent =
+        count === 0
+          ? "Print selected"
+          : `Print ${count} page${count === 1 ? "" : "s"}`;
+    }
   }
 
   function updateSummary() {
@@ -595,18 +967,15 @@ const activities = [
         data.image_url ??
         `data:${data.mime_type ?? "image/png"};base64,${data.image_base64}`;
 
-      // Set both screen image and print image
       const coloringImg = document.getElementById(
         "coloring-image",
       ) as HTMLImageElement | null;
-      const printImg = document.getElementById(
-        "print-image",
-      ) as HTMLImageElement | null;
-
       if (coloringImg) coloringImg.src = imgSrc;
-      if (printImg) printImg.src = imgSrc;
 
       resultArea?.classList.remove("hidden");
+
+      // The API saved the new page; show it at the top of the gallery.
+      if (data.id) loadGallery();
     } catch {
       errorMsg?.classList.remove("hidden");
     } finally {
