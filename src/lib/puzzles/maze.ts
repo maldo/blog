@@ -42,6 +42,11 @@ function carve(maze: Maze, i: number, dir: number): number {
 	return j;
 }
 
+/** The cell you reach by walking `dir` from `i`, or -1 if a wall is in the way. */
+export function step(maze: Maze, i: number, dir: number): number {
+	return maze.passages[i] & dir ? neighbor(maze, i, dir) : -1;
+}
+
 function validDirs(maze: Maze, i: number): number[] {
 	return DIRS.filter((d) => neighbor(maze, i, d) !== -1);
 }
@@ -314,7 +319,7 @@ export function buildMaze(s: MazeSettings): MazePuzzle {
 // ---- SVG -----------------------------------------------------------------
 
 const BOARD = 600;
-const EMOJI_FONT = "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
+export const EMOJI_FONT = "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
 
 const f = (n: number) => String(Math.round(n * 100) / 100);
 

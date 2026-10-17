@@ -2,7 +2,7 @@
 import PageHeading from "@/components/page-heading.astro";
 import "@/assets/css/puzzles.css";
 import Layout from "@/layouts/main.astro";
-import { AGE_PRESETS, ALGORITHMS, MAX_SIZE, MIN_SIZE } from "@/lib/puzzles/maze";
+import { AGE_PRESETS, ALGORITHMS, E, MAX_SIZE, MIN_SIZE, N, S, W } from "@/lib/puzzles/maze";
 import { characters, landscapes } from "@/lib/puzzles/themes";
 ---
 
@@ -10,7 +10,7 @@ import { characters, landscapes } from "@/lib/puzzles/themes";
   <section class="relative z-20 max-w-4xl mx-auto my-12 px-7 lg:px-0">
     <PageHeading
       title="Kids Maze Maker"
-      description="Pick an age, a character and a place — then print a fresh maze to solve! Share the link and anyone gets the same maze."
+      description="Pick an age, a character and a place — then print a fresh maze to solve, or play it in 3D! Share the link and anyone gets the same maze."
     />
 
     <div class="mt-10 space-y-8" id="maze-app">
@@ -87,6 +87,12 @@ import { characters, landscapes } from "@/lib/puzzles/themes";
           </svg>
           New maze
         </button>
+        <button type="button" id="play-btn" class="pz-btn pz-btn-play">
+          <svg fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 5.14v13.72a1 1 0 001.5.86l11-6.86a1 1 0 000-1.72l-11-6.86A1 1 0 008 5.14z" />
+          </svg>
+          Play in 3D
+        </button>
         <button type="button" id="print-btn" class="pz-btn pz-btn-solid">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -119,6 +125,38 @@ import { characters, landscapes } from "@/lib/puzzles/themes";
 
     </div>
   </section>
+
+  <!-- Play mode: the same maze in 3D. The game itself loads on first open. -->
+  <dialog class="pz-play" id="play-dialog" aria-labelledby="play-heading">
+    <div class="pz-play-bar">
+      <h2 id="play-heading"></h2>
+      <span class="pz-play-steps" id="play-steps"></span>
+      <button type="button" id="hint-btn" class="pz-btn pz-btn-soft pz-btn-sm">{"\u{1F4A1}"} Hint</button>
+      <button type="button" id="view-btn" class="pz-btn pz-btn-soft pz-btn-sm"></button>
+      <button type="button" id="play-close" class="pz-play-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="pz-play-stage" id="play-stage">
+      <p class="pz-play-msg" id="play-msg"></p>
+      <div class="pz-win" id="win-panel" role="status" hidden>
+        <div class="pz-win-card">
+          <p class="pz-win-emoji">{"\u{1F389}"}</p>
+          <h3>You did it!</h3>
+          <p id="win-text"></p>
+          <div class="pz-win-actions">
+            <button type="button" id="again-btn" class="pz-btn pz-btn-soft">Play again</button>
+            <button type="button" id="next-btn" class="pz-btn pz-btn-primary">New maze</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pz-dpad" role="group" aria-label="Move">
+      <button type="button" data-dir={N} aria-label="Up">&#9650;</button>
+      <button type="button" data-dir={W} aria-label="Left">&#9664;</button>
+      <button type="button" data-dir={E} aria-label="Right">&#9654;</button>
+      <button type="button" data-dir={S} aria-label="Down">&#9660;</button>
+    </div>
+    <p class="pz-play-help">Use the arrow keys, drag on the maze, or tap the arrows to move.</p>
+  </dialog>
 </Layout>
 
 <!-- Print-only view, filled by the script below -->
@@ -129,7 +167,12 @@ import { characters, landscapes } from "@/lib/puzzles/themes";
     AGE_PRESETS,
     ALGORITHMS,
     type Algorithm,
+    E,
+    type MazePuzzle,
     type MazeSettings,
+    N,
+    S,
+    W,
     agePreset,
     buildMaze,
     mazeHeading,
@@ -138,6 +181,7 @@ import { characters, landscapes } from "@/lib/puzzles/themes";
     settingsForAge,
     settingsToParams,
   } from "@/lib/puzzles/maze";
+  import type { MazeGame } from "@/lib/puzzles/maze-3d";
   import { newSeed } from "@/lib/puzzles/random";
 
   let settings: MazeSettings = parseSettings(
@@ -149,8 +193,10 @@ import { characters, landscapes } from "@/lib/puzzles/themes";
   const answerToggle = $<HTMLInputElement>("answer-toggle");
   const sizeRange = $<HTMLInputElement>("size-range");
 
+  let puzzle: MazePuzzle;
+
   function render() {
-    const puzzle = buildMaze(settings);
+    puzzle = buildMaze(settings);
     const heading = mazeHeading(puzzle);
     const maze = renderMazeSvg(puzzle);
     const solved = renderMazeSvg(puzzle, true);
@@ -227,6 +273,127 @@ import { characters, landscapes } from "@/lib/puzzles/themes";
       toast.textContent = "";
     }, 2500);
   });
+
+  // ---- Play in 3D ----
+
+  const dialog = $<HTMLDialogElement>("play-dialog");
+  const stage = $("play-stage");
+  const message = $("play-msg");
+  const winPanel = $("win-panel");
+  let game: MazeGame | null = null;
+  let opening = 0;
+  let winTimer: number | undefined;
+
+  const showSteps = (steps: number) => {
+    $("play-steps").textContent = `\u{1F463} ${steps} ${steps === 1 ? "step" : "steps"}`;
+  };
+  const showView = () => {
+    $("view-btn").textContent =
+      game?.view === "close" ? "\u{1F52D} Whole maze" : "\u{1F50D} Zoom in";
+  };
+
+  function hideWin() {
+    clearTimeout(winTimer);
+    winPanel.hidden = true;
+  }
+
+  function onWin(steps: number) {
+    const { character: c, landscape: l } = puzzle;
+    const shortest = puzzle.solution.length - 1;
+    $("win-text").textContent =
+      `The ${c.emoji} ${c.label.toLowerCase()} reached the ${l.emoji} ${l.label.toLowerCase()} in ${steps} steps. ` +
+      (steps <= shortest ? "That's the shortest way — amazing!" : `The shortest way is ${shortest} steps.`);
+    // Give the confetti a moment before the card covers the finish.
+    const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    winTimer = window.setTimeout(() => {
+      winPanel.hidden = false;
+      $("next-btn").focus();
+    }, calm ? 0 : 1400);
+  }
+
+  async function startGame() {
+    const ticket = ++opening;
+    game?.dispose();
+    game = null;
+    hideWin();
+    message.hidden = false;
+    message.textContent = "Building your maze…";
+    $("play-heading").textContent = mazeHeading(puzzle);
+    showSteps(0);
+    try {
+      const { createMazeGame } = await import("@/lib/puzzles/maze-3d");
+      // Closed, or started again, while the 3D code was loading.
+      if (ticket !== opening || !dialog.open) return;
+      game = createMazeGame(stage, puzzle, { onStep: showSteps, onWin });
+      message.hidden = true;
+    } catch {
+      message.textContent = "Sorry, this browser can't show the 3D maze. Try printing it instead!";
+    }
+    showView();
+  }
+
+  $("play-btn").addEventListener("click", () => {
+    dialog.showModal();
+    startGame();
+  });
+  $("play-close").addEventListener("click", () => dialog.close());
+  dialog.addEventListener("close", () => {
+    opening++;
+    hideWin();
+    game?.dispose();
+    game = null;
+  });
+
+  $("hint-btn").addEventListener("click", () => game?.hint());
+  $("view-btn").addEventListener("click", () => {
+    game?.setView(game.view === "close" ? "whole" : "close");
+    showView();
+  });
+  $("again-btn").addEventListener("click", () => {
+    hideWin();
+    game?.restart();
+  });
+  $("next-btn").addEventListener("click", () => {
+    update({ seed: newSeed() });
+    startGame();
+  });
+
+  const KEYS: Record<string, number> = {
+    arrowup: N,
+    w: N,
+    arrowright: E,
+    d: E,
+    arrowdown: S,
+    s: S,
+    arrowleft: W,
+    a: W,
+  };
+  dialog.addEventListener("keydown", (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const dir = KEYS[e.key.toLowerCase()];
+    if (dir && game) {
+      e.preventDefault();
+      game.move(dir);
+    } else if (e.key.toLowerCase() === "h") game?.hint();
+  });
+
+  // Arrow buttons: press to step, hold to keep walking.
+  for (const el of document.querySelectorAll<HTMLButtonElement>("[data-dir]")) {
+    const dir = Number(el.dataset.dir);
+    let timer: number | undefined;
+    const stop = () => clearInterval(timer);
+    el.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      game?.move(dir);
+      stop();
+      timer = window.setInterval(() => game?.move(dir), 170);
+    });
+    for (const type of ["pointerup", "pointerleave", "pointercancel"]) el.addEventListener(type, stop);
+    // Enter or Space on a focused arrow; pointer presses are handled above.
+    el.addEventListener("click", (e) => {
+      if (e.detail === 0) game?.move(dir);
+    });
+  }
 
   render();
 </script>
