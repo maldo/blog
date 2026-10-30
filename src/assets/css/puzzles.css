@@ -327,6 +327,233 @@ html.dark .pz-paper {
 	color: #059669;
 }
 
+/* ---- Play mode: the maze in 3D, in a dialog that fills the screen on phones ---- */
+
+.pz-btn-play {
+	color: white;
+	background: linear-gradient(135deg, #059669, #0891b2);
+	box-shadow: 0 4px 14px rgba(8, 145, 178, 0.35);
+}
+
+.pz-btn-sm {
+	padding: 0.45rem 1rem;
+	font-size: 0.875rem;
+}
+
+.pz-play {
+	width: min(64rem, 100vw - 2rem);
+	height: min(48rem, 100dvh - 2rem);
+	max-width: none;
+	max-height: none;
+	margin: auto;
+	padding: 0;
+	border: 0;
+	border-radius: 1.5rem;
+	overflow: hidden;
+	background: white;
+	color: #1e1b4b;
+}
+
+.pz-play[open] {
+	display: flex;
+	flex-direction: column;
+}
+
+.pz-play::backdrop {
+	background: rgba(30, 27, 75, 0.6);
+	backdrop-filter: blur(4px);
+}
+
+html.dark .pz-play {
+	background: #1c1917;
+	color: #e9d5ff;
+}
+
+@media (max-width: 640px) {
+	.pz-play {
+		width: 100vw;
+		height: 100dvh;
+		border-radius: 0;
+	}
+}
+
+.pz-play-bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem 0.75rem;
+	padding: 0.75rem 1rem;
+	background: linear-gradient(135deg, #fef9c3 0%, #fbcfe8 50%, #c4b5fd 100%);
+}
+
+html.dark .pz-play-bar {
+	background: linear-gradient(135deg, #422006 0%, #4a044e 50%, #2e1065 100%);
+}
+
+.pz-play-bar h2 {
+	flex: 1 1 14rem;
+	font-size: 1.1rem;
+	font-weight: 800;
+}
+
+.pz-play-steps {
+	padding: 0.35rem 0.85rem;
+	border-radius: 9999px;
+	background: rgba(255, 255, 255, 0.8);
+	font-size: 0.875rem;
+	font-weight: 800;
+	font-variant-numeric: tabular-nums;
+}
+
+html.dark .pz-play-steps {
+	background: rgba(255, 255, 255, 0.1);
+}
+
+.pz-play-close {
+	width: 2.5rem;
+	height: 2.5rem;
+	border-radius: 9999px;
+	background: rgba(255, 255, 255, 0.8);
+	font-size: 1.5rem;
+	font-weight: 700;
+	line-height: 1;
+	cursor: pointer;
+}
+
+html.dark .pz-play-close {
+	background: rgba(255, 255, 255, 0.1);
+}
+
+.pz-play-stage {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+	touch-action: none;
+}
+
+.pz-play-stage canvas {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.pz-play-msg {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	padding: 1.5rem;
+	text-align: center;
+	font-weight: 700;
+}
+
+.pz-play-help {
+	padding: 0.5rem 1rem;
+	text-align: center;
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: #6b7280;
+}
+
+html.dark .pz-play-help {
+	color: #a8a29e;
+}
+
+/* The arrow pad sits over the bottom-right corner of the maze, or under it on phones. */
+.pz-dpad {
+	position: absolute;
+	right: 1rem;
+	bottom: 3rem;
+	display: grid;
+	grid-template-columns: repeat(3, 3.25rem);
+	grid-template-rows: repeat(3, 3.25rem);
+	gap: 0.25rem;
+}
+
+.pz-dpad button {
+	border-radius: 1rem;
+	background: rgba(255, 255, 255, 0.85);
+	color: #4c1d95;
+	font-size: 1.25rem;
+	box-shadow: 0 2px 8px rgba(30, 27, 75, 0.25);
+	cursor: pointer;
+	touch-action: none;
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-touch-callout: none;
+	transition: transform 0.1s ease;
+}
+
+.pz-dpad button:active {
+	background: #7c3aed;
+	color: white;
+	transform: scale(0.94);
+}
+
+.pz-dpad [aria-label="Up"] {
+	grid-area: 1 / 2;
+}
+
+.pz-dpad [aria-label="Left"] {
+	grid-area: 2 / 1;
+}
+
+.pz-dpad [aria-label="Right"] {
+	grid-area: 2 / 3;
+}
+
+.pz-dpad [aria-label="Down"] {
+	grid-area: 3 / 2;
+}
+
+@media (max-width: 640px) {
+	.pz-dpad {
+		position: static;
+		margin: 0.5rem auto 0;
+	}
+}
+
+.pz-win {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	padding: 1rem;
+}
+
+.pz-win-card {
+	max-width: 26rem;
+	padding: 1.5rem;
+	border-radius: 1.5rem;
+	background: white;
+	color: #1e1b4b;
+	text-align: center;
+	box-shadow: 0 10px 40px rgba(30, 27, 75, 0.3);
+}
+
+.pz-win-card h3 {
+	font-size: 1.75rem;
+	font-weight: 800;
+}
+
+.pz-win-card p {
+	margin-top: 0.5rem;
+	font-weight: 600;
+}
+
+.pz-win-emoji {
+	font-size: 3rem;
+	line-height: 1;
+}
+
+.pz-win-actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.75rem;
+	margin-top: 1.25rem;
+}
+
 /* ---- Print: one sheet per page, controls and site chrome hidden ---- */
 
 #print-container {
