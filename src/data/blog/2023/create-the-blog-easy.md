@@ -10,7 +10,7 @@ tags:
   - AWS
   - Amplify
   - Vercel
-  - Cloudfare
+  - Cloudflare
 ---
 
 In a previous [blog post](../2023-01-05-create-blog-hard-way/index.md), we talked on how to create a blog and deploy it using Github Actions and several services of AWS (S3, Cloudfront, Route 53, IAM). While you can get a lot of practice doing it yourself, there are some easy ways to deploy a blog (or almost anything).
@@ -25,13 +25,13 @@ You can add a CNAME record to that URL so you can access your page using your do
 
 Remember with Amplify, you may need to pay some euros/dollars at the end of the month.
 
-## Cloudfare
+## Cloudflare
 
 Another option is Cloudflare. Historically, Cloudflare has been associated with networking and DDoS protection, but recently, they've shifted their focus towards being more than just a network provider. They offer features like Pages, Workers, R2 (similar to S3 storage), and Domains. Compared to AWS, it's still smaller, but it's growing and offers what we need — and for **free**!
-So visit [Cloudfare](https://www.cloudflare.com/) and register. Go to **Workers & Pages**, Create an application and then **Pages**. Now, the steps are quite similar to those of AWS Amplify. Connect to Git, you can select your GitHub or GitLab account, from there select your repository and Begin Setup.
+So visit [Cloudflare](https://www.cloudflare.com/) and register. Go to **Workers & Pages**, Create an application and then **Pages**. Now, the steps are quite similar to those of AWS Amplify. Connect to Git, you can select your GitHub or GitLab account, from there select your repository and Begin Setup.
 Select Name, your branch and most important the `Framework preset` and **Save and Deploy**. It will create a page `your-project.pages.dev`
 After that, you can add a Custom domain to your recently new page. The best thing is **Free** for static pages.
-![Cloudfare free plan](@/assets/images/cloudfare-free-plan.png)
+![Cloudflare free plan](@/assets/images/cloudfare-free-plan.png)
 
 ## Vercel
 
