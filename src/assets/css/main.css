@@ -10,7 +10,13 @@
 /* Add Your Custom CSS Here */
 
 .prose img {
-	border-radius: 30px;
+	border-radius: 0.75rem;
+}
+
+/* The typography plugin wraps inline code in literal backticks */
+.prose code::before,
+.prose code::after {
+	content: none;
 }
 
 #sun {
