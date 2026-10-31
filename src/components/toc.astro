@@ -1,0 +1,52 @@
+---
+// Table of contents for a post: its h2 and h3 headings. The link for the section being read is
+// highlighted.
+import type { MarkdownHeading } from "astro";
+
+interface Props {
+	headings: MarkdownHeading[];
+}
+
+const { headings } = Astro.props;
+---
+
+<ul class="font-mono text-xs border-l border-neutral-200 dark:border-neutral-800">
+  {
+    headings.map((heading) => (
+      <li>
+        <a
+          href={`#${heading.slug}`}
+          data-toc-link={heading.slug}
+          class:list={[
+            "block py-1 -ml-px border-l border-transparent duration-200 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white data-[active]:border-accent data-[active]:text-accent",
+            heading.depth === 2 ? "pl-3" : "pl-6",
+          ]}
+        >
+          {heading.text}
+        </a>
+      </li>
+    ))
+  }
+</ul>
+
+<script>
+	// Highlight the last heading that has scrolled past the top fifth of the screen
+	const links = [...document.querySelectorAll<HTMLAnchorElement>("[data-toc-link]")];
+	const slugs = [...new Set(links.map((link) => link.dataset.tocLink as string))];
+	const targets = slugs
+		.map((slug) => document.getElementById(slug))
+		.filter((el): el is HTMLElement => el !== null);
+
+	function update() {
+		const line = window.innerHeight / 5;
+		const current = targets.filter((el) => el.getBoundingClientRect().top < line).at(-1);
+		for (const link of links) {
+			link.toggleAttribute("data-active", link.dataset.tocLink === current?.id);
+		}
+	}
+
+	if (targets.length > 0) {
+		window.addEventListener("scroll", update, { passive: true });
+		update();
+	}
+</script>

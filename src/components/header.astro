@@ -1,6 +1,14 @@
 ---
 import menus from "../collections/menu.json";
 import Logo from "../components/logo.astro";
+
+const path = Astro.url.pathname.replace(/\/$/, "") || "/";
+
+// Post pages live under /post/, so they light up "Posts"
+function isActive(url: string) {
+	if (url === "/") return path === "/";
+	return path.startsWith(url) || (url === "/posts" && path.startsWith("/post/"));
+}
 ---
 
 <!-- This is an invisible div with relative position so that it takes up the height of the menu (because menu is absolute/fixed) -->
@@ -17,7 +25,7 @@ import Logo from "../components/logo.astro";
     >
     </div>
     <nav
-      class="relative z-30 flex flex-row-reverse justify-start w-full text-sm sm:justify-end text-neutral-500 dark:text-neutral-400 sm:flex-row"
+      class="relative z-30 flex flex-row-reverse justify-start w-full font-mono text-sm sm:justify-end text-neutral-500 dark:text-neutral-400 sm:flex-row"
     >
       <div
         id="openMenu"
@@ -61,26 +69,44 @@ import Logo from "../components/logo.astro";
         </div>
         {
           menus.map((menu) => {
+            const active = isActive(menu.url)
             return (
               <a
                 href={menu.url}
-                class="relative flex items-center justify-center w-full px-3 py-2 font-medium tracking-wide text-center duration-200 ease-out sm:py-0 sm:mb-0 md:w-auto hover:text-neutral-900 dark:hover:text-white"
+                aria-current={active ? "page" : undefined}
+                class:list={[
+                  "relative flex items-center justify-center w-full px-3 py-2 tracking-tight text-center duration-200 ease-out group/link sm:py-0 sm:mb-0 md:w-auto hover:text-neutral-900 dark:hover:text-white",
+                  active && "text-neutral-900 dark:text-white",
+                ]}
               >
-                {menu.name}
+                <span
+                  aria-hidden="true"
+                  class:list={[
+                    "mr-1 duration-200",
+                    active
+                      ? "text-accent"
+                      : "opacity-0 group-hover/link:opacity-60",
+                  ]}
+                >
+                  &gt;
+                </span>
+                {menu.name.toLowerCase()}
               </a>
             )
           })
         }
       </div>
-      <div
+      <button
         id="darkToggle"
-        class="relative flex items-center pl-6 ml-4 font-medium tracking-wide cursor-pointer text-neutral-800 group dark:text-white"
+        type="button"
+        aria-label="Toggle dark mode"
+        class="relative flex items-center pl-6 ml-4 tracking-tight cursor-pointer text-neutral-800 group dark:text-white"
       >
         <div
           class="absolute left-0 flex items-center justify-center w-6 h-6 overflow-hidden border-b border-transparent horizon group-hover:border-neutral-600"
         >
           <svg
-            class="absolute w-6 h-6 transition duration-700 transform ease"
+            class="absolute hidden w-6 h-6 transition duration-700 transform ease dark:block"
             id="sun"
             fill="none"
             stroke-linecap="round"
@@ -93,7 +119,7 @@ import Logo from "../components/logo.astro";
             ></path></svg
           >
           <svg
-            class="absolute hidden w-6 h-6 transition duration-700 transform ease"
+            class="absolute w-6 h-6 transition duration-700 transform ease dark:hidden"
             id="moon"
             fill="none"
             stroke-linecap="round"
@@ -106,11 +132,11 @@ import Logo from "../components/logo.astro";
             ></path></svg
           >
         </div>
-        <span class="hidden sm:inline-block">
-          <span id="dayText" class="ml-2">Day mode</span>
-          <span id="nightText" class="hidden ml-2">Night mode</span>
+        <span class="hidden ml-2 sm:inline-block">
+          <span class="dark:hidden">dark mode</span>
+          <span class="hidden dark:inline">light mode</span>
         </span>
-      </div>
+      </button>
     </nav>
   </div>
 </header>

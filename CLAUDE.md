@@ -36,7 +36,9 @@ The project uses Astro's Content Layer with file-based loader for blog posts:
 - Frontmatter schema supports:
   - Required: `title`, `description`
   - Optional: `slug`, `authors`, `pubDatetime` (string or Date), `dateFormatted`, `tags` (array)
-- Posts are routed via `src/pages/post/[...slug]/index.astro`
+- Posts are routed via `src/pages/post/[...slug].astro` at `/post/<year>/<id>`
+- `src/lib/posts.ts` holds the shared post helpers (`getSortedPosts`, `postUrl`, `postDate`,
+  `formatDate`, `readingTime`); use them instead of re-deriving dates or URLs
 - Blog listing page at `src/pages/posts.astro` uses the `PostsLoop` component
 
 **Adding new blog posts**: Create markdown files in `src/data/blog/` with the required frontmatter fields.
@@ -47,16 +49,18 @@ The project uses Astro's Content Layer with file-based loader for blog posts:
 - `src/pages/about.astro` - About page
 - `src/pages/posts.astro` - Blog listing
 - `src/pages/projects.astro` - Projects showcase
-- `src/pages/post/[...slug]/index.astro` - Dynamic blog post pages (pulls from `blog` collection)
+- `src/pages/post/[...slug].astro` - Dynamic blog post pages (pulls from `blog` collection)
 
 ## Layout System
 
 - `src/layouts/main.astro` - Base layout with header, footer, dark mode script
-- `src/layouts/post.astro` - Blog post layout extending main layout
+- `src/layouts/post.astro` - Blog post layout extending main layout: title, meta line (date ·
+  reading time · tags) and a table of contents built from the post's h2/h3 headings
 
 The main layout includes:
-- Dark mode support via localStorage (`dark_mode` key)
-- Inline script to prevent flash of unstyled content
+- Dark mode follows the system setting until the visitor uses the toggle, which saves
+  `dark_mode` = `"true"`/`"false"` in localStorage
+- Inline script to prevent flash of unstyled content (applies `.dark` before first paint)
 - Environment variable injection points: `HEADER_INJECT` and `FOOTER_INJECT`
 
 ## Path Aliases
@@ -77,6 +81,14 @@ Use these in imports: `import Layout from "@/layouts/post.astro"`
 - `src/assets/css/main.css` is imported from `src/layouts/main.astro`
 - Dark mode: class-based with `dark:` prefix, declared as a `@custom-variant` in
   `main.css` that matches `.dark` on `<html>`
+- Theme tokens live in `main.css`: an `accent` color (teal, deeper in light mode and brighter in
+  dark mode, so use `text-accent` / `bg-accent` / `text-accent-contrast` rather than raw teal
+  shades) and the fonts, Geist (`font-sans`) and Geist Mono (`font-mono`), self-hosted via
+  `@fontsource-variable/*` and imported in `src/layouts/main.astro`
+- The look is "terminal": monospace for nav, dates, tags and small labels, and a
+  `src/components/prompt.astro` line (e.g. `$ ls posts/`) above section headings
+- Code blocks use Shiki's `github-light` / `github-dark` themes (`astro.config.mjs`); `main.css`
+  switches to the dark one under `.dark`
 - Biome handles code formatting and linting (not Prettier/ESLint)
 
 ## Package Manager

@@ -1,11 +1,30 @@
 ---
+import PostMeta from "@/components/post-meta.astro";
+import Prompt from "@/components/prompt.astro";
+import Toc from "@/components/toc.astro";
+import type { Post } from "@/lib/posts";
+import type { MarkdownHeading } from "astro";
 import Layout from "./main.astro";
-const { frontmatter } = Astro.props;
+
+interface Props {
+	post: Post;
+	headings: MarkdownHeading[];
+}
+
+const { post, headings } = Astro.props;
+
+const tocHeadings = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+const hasToc = tocHeadings.length >= 2;
+
+// The title block and the article share this grid so they line up; on wide screens the table of
+// contents sits in the second column.
+const grid =
+	"w-full max-w-2xl mx-auto xl:max-w-none xl:grid xl:grid-cols-[minmax(0,42rem)_13rem] xl:justify-center xl:gap-12";
 ---
 
-<Layout title={frontmatter.title}>
+<Layout title={post.data.title}>
   <main
-    class="relative z-30 max-w-4xl pb-1 mx-auto mt-10 bg-white dark:bg-neutral-950 md:rounded-t-md text-neutral-900"
+    class="relative z-30 max-w-4xl pb-1 mx-auto mt-10 bg-white xl:max-w-5xl dark:bg-neutral-950 md:rounded-t-md"
   >
     <div
       class="relative flex flex-col px-5 pt-6 border-t border-b-0 md:border-r md:border-l md:pt-20 lg:px-0 justify-stretch md:rounded-t-2xl border-neutral-200 dark:border-neutral-800"
@@ -18,17 +37,52 @@ const { frontmatter } = Astro.props;
         class="absolute top-0 right-0 hidden w-px h-full mt-1 translate-x-px md:block bg-gradient-to-b from-transparent to-white dark:to-neutral-950"
       >
       </div>
-      <h1
-        class="w-full max-w-2xl mx-auto text-3xl font-bold leading-tight tracking-tighter text-left md:mb-12 md:text-4xl dark:text-neutral-100 lg:text-5xl md:leading-none"
-      >
-        {frontmatter.title}
-      </h1>
+      <div class={grid}>
+        <header class="md:mb-12">
+          <Prompt command={`cat ${post.id}.md`} />
+          <h1
+            class="text-3xl font-bold leading-tight tracking-tighter md:text-4xl lg:text-5xl md:leading-none"
+          >
+            {post.data.title}
+          </h1>
+          <PostMeta post={post} class="mt-5" />
+        </header>
+      </div>
     </div>
 
-    <article
-      class="w-full max-w-2xl mx-auto mb-20 prose-sm prose px-7 lg:px-0 lg:prose-lg dark:prose-invert"
-    >
-      <slot />
-    </article>
+    <div class={`${grid} px-7 lg:px-0`}>
+      <div class="min-w-0 mt-8 mb-20 md:mt-0">
+        {
+          hasToc && (
+            <details class="mb-10 font-mono text-xs border border-dashed rounded-xl xl:hidden border-neutral-300 dark:border-neutral-700 group/toc">
+              <summary class="flex items-center gap-2 px-4 py-3 cursor-pointer select-none text-neutral-600 dark:text-neutral-300 marker:content-none">
+                <span class="text-accent duration-200 group-open/toc:rotate-90" aria-hidden="true">&gt;</span>
+                contents
+              </summary>
+              <div class="px-4 pb-4">
+                <Toc headings={tocHeadings} />
+              </div>
+            </details>
+          )
+        }
+        <article
+          class="prose-sm prose max-w-none lg:prose-lg dark:prose-invert"
+        >
+          <slot />
+        </article>
+      </div>
+      {
+        hasToc && (
+          <aside class="hidden xl:block">
+            <nav aria-label="Table of contents" class="sticky top-24">
+              <p class="mb-3 font-mono text-xs text-neutral-500 dark:text-neutral-400">
+                <span class="text-accent" aria-hidden="true">#</span> on this page
+              </p>
+              <Toc headings={tocHeadings} />
+            </nav>
+          </aside>
+        )
+      }
+    </div>
   </main>
 </Layout>

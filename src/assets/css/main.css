@@ -7,16 +7,111 @@
 /* Dark mode is toggled by adding `.dark` to <html> (see src/layouts/main.astro) */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Add Your Custom CSS Here */
+/* The accent is deeper in light mode and brighter in dark mode so text stays readable on both.
+   Use it through the `accent` / `accent-contrast` colors, e.g. `text-accent`, `bg-accent/10`. */
+:root {
+	--accent: var(--color-teal-700);
+	--accent-contrast: var(--color-white);
+}
+
+html.dark {
+	--accent: var(--color-teal-400);
+	--accent-contrast: var(--color-neutral-950);
+}
+
+@theme inline {
+	--color-accent: var(--accent);
+	--color-accent-contrast: var(--accent-contrast);
+}
+
+@theme {
+	--font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+	--font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+::selection {
+	background-color: color-mix(in oklab, var(--accent) 25%, transparent);
+}
+
+:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+
+/* Blinking terminal cursor */
+.cursor {
+	animation: blink 1.1s steps(1) infinite;
+}
+
+@keyframes blink {
+	50% {
+		opacity: 0;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.cursor {
+		animation: none;
+	}
+}
+
+/* ---- Post content ---- */
+
+.prose {
+	--tw-prose-links: var(--accent);
+	--tw-prose-invert-links: var(--accent);
+	--tw-prose-quote-borders: var(--accent);
+	--tw-prose-invert-quote-borders: var(--accent);
+}
+
+.prose a {
+	text-decoration-color: color-mix(in oklab, var(--accent) 40%, transparent);
+	text-underline-offset: 3px;
+}
+
+.prose a:hover {
+	text-decoration-color: var(--accent);
+}
+
+.prose :where(h2, h3, h4) {
+	scroll-margin-top: 5rem;
+}
 
 .prose img {
 	border-radius: 0.75rem;
 }
 
-/* The typography plugin wraps inline code in literal backticks */
+/* The typography plugin wraps inline code in literal backticks; use a soft chip instead */
 .prose code::before,
 .prose code::after {
 	content: none;
+}
+
+.prose :not(pre) > code {
+	padding: 0.15em 0.4em;
+	border-radius: 0.3rem;
+	background-color: var(--color-neutral-100);
+	font-weight: 500;
+}
+
+html.dark .prose :not(pre) > code {
+	background-color: var(--color-neutral-800);
+}
+
+.prose pre {
+	border: 1px solid var(--color-neutral-200);
+	border-radius: 0.75rem;
+}
+
+html.dark .prose pre {
+	border-color: var(--color-neutral-800);
+}
+
+/* Code blocks get both Shiki themes (astro.config.mjs); switch to the dark one with the site */
+html.dark .astro-code,
+html.dark .astro-code span {
+	color: var(--shiki-dark) !important;
+	background-color: var(--shiki-dark-bg) !important;
 }
 
 #sun {

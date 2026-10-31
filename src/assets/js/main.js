@@ -1,7 +1,5 @@
 // Add your javascript here
 
-window.darkMode = false;
-
 const stickyClasses = ["fixed", "h-14"];
 const unstickyClasses = ["absolute", "h-20"];
 const stickyClassesContainer = [
@@ -17,28 +15,10 @@ let headerElement = null;
 document.addEventListener("DOMContentLoaded", () => {
 	headerElement = document.getElementById("header");
 
-	if (localStorage.getItem("dark_mode") && localStorage.getItem("dark_mode") === "true") {
-		window.darkMode = true;
-		showNight();
-	} else {
-		showDay();
-	}
 	stickyHeaderFuncionality();
-	applyMenuItemClasses();
 	evaluateHeaderPosition();
 	mobileMenuFunctionality();
 });
-
-// window.toggleDarkMode = function(){
-//     document.documentElement.classList.toggle('dark');
-//     if(document.documentElement.classList.contains('dark')){
-//         localStorage.setItem('dark_mode', true);
-//         window.darkMode = true;
-//     } else {
-//         window.darkMode = false;
-//         localStorage.setItem('dark_mode', false);
-//     }
-// }
 
 window.stickyHeaderFuncionality = () => {
 	window.addEventListener("scroll", () => {
@@ -67,76 +47,32 @@ window.evaluateHeaderPosition = () => {
 document.getElementById("darkToggle").addEventListener("click", () => {
 	document.documentElement.classList.add("duration-300");
 
+	// Save an explicit choice so it overrides the system setting from now on
 	if (document.documentElement.classList.contains("dark")) {
-		localStorage.removeItem("dark_mode");
-		showDay(true);
+		localStorage.setItem("dark_mode", false);
+		switchTheme(false);
 	} else {
 		localStorage.setItem("dark_mode", true);
-		showNight(true);
+		switchTheme(true);
 	}
 });
 
-function showDay(animate) {
-	document.getElementById("sun").classList.remove("setting");
-	document.getElementById("moon").classList.remove("rising");
+// The toggle shows what clicking it does (a moon in light mode, a sun in dark mode). Which icon
+// and label are visible is handled by `dark:` classes in header.astro; this only animates the
+// current icon setting and the next one rising.
+function switchTheme(dark) {
+	const leaving = document.getElementById(dark ? "moon" : "sun");
+	const arriving = document.getElementById(dark ? "sun" : "moon");
 
-	let timeout = 0;
-
-	if (animate) {
-		timeout = 500;
-
-		document.getElementById("moon").classList.add("setting");
-	}
-
-	setTimeout(() => {
-		document.getElementById("dayText").classList.remove("hidden");
-		document.getElementById("nightText").classList.add("hidden");
-
-		document.getElementById("moon").classList.add("hidden");
-		document.getElementById("sun").classList.remove("hidden");
-
-		if (animate) {
-			document.documentElement.classList.remove("dark");
-			document.getElementById("sun").classList.add("rising");
-		}
-	}, timeout);
-}
-
-function showNight(animate) {
-	document.getElementById("moon").classList.remove("setting");
-	document.getElementById("sun").classList.remove("rising");
-
-	let timeout = 0;
-
-	if (animate) {
-		timeout = 500;
-
-		document.getElementById("sun").classList.add("setting");
-	}
+	arriving.classList.remove("setting");
+	leaving.classList.remove("rising");
+	leaving.classList.add("setting");
 
 	setTimeout(() => {
-		document.getElementById("nightText").classList.remove("hidden");
-		document.getElementById("dayText").classList.add("hidden");
-
-		document.getElementById("sun").classList.add("hidden");
-		document.getElementById("moon").classList.remove("hidden");
-
-		if (animate) {
-			document.documentElement.classList.add("dark");
-			document.getElementById("moon").classList.add("rising");
-		}
-	}, timeout);
+		document.documentElement.classList.toggle("dark", dark);
+		arriving.classList.add("rising");
+	}, 500);
 }
-
-window.applyMenuItemClasses = () => {
-	const menuItems = document.querySelectorAll("#menu a");
-	for (let i = 0; i < menuItems.length; i++) {
-		if (menuItems[i].pathname === window.location.pathname) {
-			menuItems[i].classList.add("text-neutral-900", "dark:text-white");
-		}
-	}
-	//:class="{ 'text-neutral-900 dark:text-white': window.location.pathname == '{menu.url}', 'text-neutral-700 dark:text-neutral-400': window.location.pathname != '{menu.url}' }"
-};
 
 function mobileMenuFunctionality() {
 	document.getElementById("openMenu").addEventListener("click", () => {
