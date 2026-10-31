@@ -4,7 +4,7 @@ import amLogo from "../assets/images/m.svg";
 
 <a
   href="/"
-  class="h-8 text-base group relative z-30 flex items-center space-x-1.5 text-black dark:text-white font-semibold"
+  class="h-8 text-base group relative z-30 flex items-center space-x-1.5 text-black dark:text-white font-mono font-semibold tracking-tight"
 >
   <span
     class="relative flex items-center justify-center group-hover:-rotate-12 group-hover:scale-110 ease-in-out duration-300"
@@ -12,5 +12,7 @@ import amLogo from "../assets/images/m.svg";
     <img src={amLogo.src} alt="AM" class="w-10 h-10 dark:invert" />
   </span>
   <!-- Logo Text -->
-  <span class="translate-y-0.5"> maldo</span>
+  <span class="translate-y-0.5"
+    >maldo<span class="cursor text-accent" aria-hidden="true">_</span></span
+  >
 </a>

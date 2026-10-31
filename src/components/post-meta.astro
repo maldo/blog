@@ -1,0 +1,36 @@
+---
+// Date · reading time · tags, in monospace
+import { type Post, formatDate, postDate, readingTime } from "@/lib/posts";
+
+interface Props {
+	post: Post;
+	showTags?: boolean;
+	class?: string;
+}
+
+const { post, showTags = true, class: className } = Astro.props;
+const date = postDate(post);
+const tags = showTags ? (post.data.tags ?? []) : [];
+---
+
+<div
+  class:list={[
+    "flex flex-wrap items-center font-mono text-xs gap-x-2 gap-y-1 text-neutral-500 dark:text-neutral-400",
+    className,
+  ]}
+>
+  <time datetime={date.toISOString()}>{formatDate(date)}</time>
+  <span aria-hidden="true">·</span>
+  <span>{readingTime(post)} min read</span>
+  {
+    tags.length > 0 && (
+      <ul class="flex flex-wrap gap-1.5">
+        {tags.map((tag) => (
+          <li class="px-1.5 py-0.5 rounded bg-accent/10 text-accent">
+            #{tag.toLowerCase()}
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</div>
